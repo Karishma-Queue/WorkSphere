@@ -42,4 +42,26 @@ public class AuthService {
        authRepository.save(auth);
        return new SignupResponse(user.getUser_name(),user.getJob_title(),user.getRole().toString(),user.getDepartment(),user.getProfile_picture_url(),auth.getEmail(),auth.getHashed_pass());
     }
+    public SignupResponse loginUser(SignupRequest request)
+    {
+        Optional<Auth> optionalAuth = authRepository.findByEmail(request.getEmail());
+       if(optionalAuth.isEmpty())
+       {
+           throw new UserNotFoundException("Account not created");
+       }
+       Auth auth=optionalAuth.get();
+       User user=auth.getUser();
+       boolean matches= passwordEncoder.matches(request.getPassword(), auth.getHashed_pass());
+       if(!matches)
+       {
+           throw new InvalidCredentialsException("Incorrect password");
+       }
+        return new LoginResponse(
+                user.getUser_name(),
+                user.getRole(),
+                user.getProfile_picture_url(),
+                auth.getEmail()
+        );
+
+    }
 }
