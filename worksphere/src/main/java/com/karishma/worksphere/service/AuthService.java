@@ -1,6 +1,8 @@
 package com.karishma.worksphere.service;
 
 import com.karishma.worksphere.exception.EmailAlreadyExists;
+import com.karishma.worksphere.exception.InvalidCredentialsException;
+import com.karishma.worksphere.exception.UserNotFoundException;
 import com.karishma.worksphere.model.dto.request.SignupRequest;
 import com.karishma.worksphere.model.dto.response.SignupResponse;
 import com.karishma.worksphere.model.entity.Auth;
@@ -56,6 +58,7 @@ public class AuthService {
        {
            throw new InvalidCredentialsException("Incorrect password");
        }
+       -
         return new LoginResponse(
                 user.getUser_name(),
                 user.getRole(),
