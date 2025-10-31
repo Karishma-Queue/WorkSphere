@@ -10,14 +10,13 @@ public class SignupResponse {
     private String password;
 
     public SignupResponse(String userName, String jobTitle, String role, String department,
-                          String profilePictureUrl, String email, String password) {
+                          String profilePictureUrl, String email) {
         this.userName = userName;
         this.jobTitle = jobTitle;
         this.role = role;
         this.department = department;
         this.profilePictureUrl = profilePictureUrl;
         this.email = email;
-        this.password = password;
     }
 
     // Getters and Setters

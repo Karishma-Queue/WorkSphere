@@ -3,23 +3,31 @@ package com.karishma.worksphere.service;
 import com.karishma.worksphere.exception.EmailAlreadyExists;
 import com.karishma.worksphere.exception.InvalidCredentialsException;
 import com.karishma.worksphere.exception.UserNotFoundException;
+import com.karishma.worksphere.model.dto.request.LoginRequest;
 import com.karishma.worksphere.model.dto.request.SignupRequest;
+import com.karishma.worksphere.model.dto.response.LoginResponse;
 import com.karishma.worksphere.model.dto.response.SignupResponse;
 import com.karishma.worksphere.model.entity.Auth;
 import com.karishma.worksphere.model.entity.User;
 import com.karishma.worksphere.repository.AuthRepository;
 import com.karishma.worksphere.repository.UserRepository;
+import com.karishma.worksphere.security.JwtUtil;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
+import java.beans.Transient;
 import java.util.Optional;
-
+@Service
 @RequiredArgsConstructor
 public class AuthService {
     private final AuthRepository authRepository;
+    private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final CloudinaryService cloudinaryService;
+    @Transactional
     public SignupResponse registerUser(SignupRequest request)
     {
        if(authRepository.findByEmail(request.getEmail()).isPresent())
@@ -36,18 +44,24 @@ public class AuthService {
                .profile_picture_url(url)
                .build();
        userRepository.save(user);
-       Auth auth=Auth.builder()
+        System.out.println("DEBUG - Saved User: " + user);
+
+        Auth auth=Auth.builder()
                .email(request.getEmail())
                .user(user)
                .hashed_pass(hashedPassword)
                .build();
        authRepository.save(auth);
-       return new SignupResponse(user.getUser_name(),user.getJob_title(),user.getRole().toString(),user.getDepartment(),user.getProfile_picture_url(),auth.getEmail(),auth.getHashed_pass());
+        System.out.println("DEBUG - Saved Auth: " + auth);
+
+        return new SignupResponse(user.getUser_name(),user.getJob_title(),user.getRole().toString(),user.getDepartment(),user.getProfile_picture_url(),auth.getEmail());
     }
-    public SignupResponse loginUser(SignupRequest request)
+    public LoginResponse loginUser(LoginRequest request)
     {
         Optional<Auth> optionalAuth = authRepository.findByEmail(request.getEmail());
-       if(optionalAuth.isEmpty())
+        System.out.println("Saved auth: " + authRepository.findByEmail(request.getEmail()));
+
+        if(optionalAuth.isEmpty())
        {
            throw new UserNotFoundException("Account not created");
        }
@@ -58,13 +72,14 @@ public class AuthService {
        {
            throw new InvalidCredentialsException("Incorrect password");
        }
-       -
-        return new LoginResponse(
-                user.getUser_name(),
-                user.getRole(),
-                user.getProfile_picture_url(),
-                auth.getEmail()
-        );
 
-    }
+               String token = jwtUtil.generateToken(auth.getEmail(), user.getRole().toString());
+
+        return LoginResponse.builder()
+                .user_name(user.getUser_name())
+                .role(user.getRole())
+                .profile_picture_url(user.getProfile_picture_url())
+                .email(auth.getEmail())
+                .token(token)
+                .build();    }
 }

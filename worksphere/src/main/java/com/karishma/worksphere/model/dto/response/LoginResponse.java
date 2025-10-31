@@ -1,5 +1,19 @@
 package com.karishma.worksphere.model.dto.response;
 
-public class LoginResponse {
+import com.karishma.worksphere.model.enums.Role;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class LoginResponse {
+    private String user_name;
+    private Role role;
+    private String profile_picture_url;
+    private String email;
+    private String token;
 }

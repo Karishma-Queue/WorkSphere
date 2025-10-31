@@ -3,6 +3,7 @@ package com.karishma.worksphere.model.dto.request;
 import com.karishma.worksphere.model.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,7 +21,7 @@ public class SignupRequest {
     @NotBlank(message="Email is required")
     @Email(message="Please enter a valid email")
     private String email;
-    @NotBlank(message="Role is required")
+    @NotNull(message="Role is required")
     private Role role;
     @NotBlank(message="Job Title is required")
     private String job_title;
