@@ -31,4 +31,14 @@ public class GlobalExceptionHandler {
     {
         return new ResponseEntity<>(e.getMessage(),HttpStatus.UNAUTHORIZED);
     }
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<String> handleAuthenticationException(AuthenticationException e)
+    {
+        return new ResponseEntity<>(e.getMessage(),HttpStatus.UNAUTHORIZED);
+    }
+    @ExceptionHandler(MemberOnlyException.class)
+    public ResponseEntity<String> handleMemberOnlyException(MemberOnlyException e)
+    {
+        return new ResponseEntity<>(e.getMessage(),HttpStatus.FORBIDDEN);
+    }
 }
