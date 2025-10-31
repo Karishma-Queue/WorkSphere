@@ -36,10 +36,11 @@ public class BoardRequestService {
                {
                   return new MemberOnlyException("Only member is allowed");
                }
-        
+
 
 
         }
+           P
 
     }
 }
