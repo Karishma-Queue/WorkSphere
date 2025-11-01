@@ -21,15 +21,19 @@ public class Board {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID board_id;
+    @Column(nullable = false)
     private String board_name;
+    @Column(nullable=false)
+    private String board_key;
+    @Column(nullable = false)
     private String description;
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    private BoardStatus boardStatus= BoardStatus.TO_DO;
+    private BoardStatus boardStatus= BoardStatus.ACTIVE;
     @CreationTimestamp
     private LocalDateTime createdAt;
-    @OneToOne
-    @JoinColumn(name="created_by")
+    @ManyToOne
+    @JoinColumn(name="created_by",nullable = false)
     private User createdBy;
 
 }

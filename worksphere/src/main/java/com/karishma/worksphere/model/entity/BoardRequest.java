@@ -18,6 +18,7 @@ import java.util.UUID;
 public class BoardRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+
     private UUID board_request_id;
     @Column(nullable = false,unique = true)
     private String board_request_name;
