@@ -5,9 +5,8 @@ import com.karishma.worksphere.exception.BoardRequestException;
 import com.karishma.worksphere.exception.MemberOnlyException;
 import com.karishma.worksphere.exception.UserNotFoundException;
 import com.karishma.worksphere.model.dto.request.BoardRequestDTO;
-import com.karishma.worksphere.model.entity.Auth;
-import com.karishma.worksphere.model.entity.BoardRequest;
-import com.karishma.worksphere.model.entity.User;
+import com.karishma.worksphere.model.entity.*;
+import com.karishma.worksphere.model.enums.BoardRole;
 import com.karishma.worksphere.model.enums.Role;
 import com.karishma.worksphere.repository.AuthRepository;
 import com.karishma.worksphere.repository.BoardRequestRepository;
@@ -72,6 +71,9 @@ public class BoardRequestService {
             throw new AuthenticationException("User not authenticated");
 
         }
+        Optional<BoardRequest>boardrequest1=boardRequestRepository.findById(id);
+        BoardRequest boardrequest=boardrequest1.get();
+
         if(!authRepository.findByEmail(auth.getName()).isPresent())
         {
             throw new RuntimeException("No entry found");
@@ -79,6 +81,18 @@ public class BoardRequestService {
         }
         Optional<Auth> adminauth=authRepository.findByEmail(auth.getName());
         Auth authAdmin=adminauth.get();
+        Board board=Board.builder()
+                .board_name(boardrequest.getBoard_request_name())
+                .board_key(boardrequest.getBoard_request_key())
+                .description(boardrequest.getDescription())
+                .createdBy(boardrequest.getRequester())
+                .build();
+        
+        BoardMember boardMember=BoardMember.builder()
+                .board(board)
+                .user(board.getCreatedBy())
+                .boardRole(BoardRole.PROJECT_ADMIN)
+                .build();
 
 
     }
