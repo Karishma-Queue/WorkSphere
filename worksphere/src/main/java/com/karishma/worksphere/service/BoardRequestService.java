@@ -87,7 +87,7 @@ public class BoardRequestService {
                 .description(boardrequest.getDescription())
                 .createdBy(boardrequest.getRequester())
                 .build();
-        
+
         BoardMember boardMember=BoardMember.builder()
                 .board(board)
                 .user(board.getCreatedBy())
