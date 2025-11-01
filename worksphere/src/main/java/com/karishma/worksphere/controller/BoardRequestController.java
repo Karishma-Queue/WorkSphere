@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,7 +44,11 @@ public class BoardRequestController {
     }
     @AllowOnlyAdmin
     @PostMapping("/project-request/{id}/reject")
-    public 
+    public ResponseEntity<?> approveRequest(@PathVariable UUID id)
+    {
+        boardRequestService.approveRequest(id);
+       return ResponseEntity.ok("Request approved for "+id);
+    }
 
 
 

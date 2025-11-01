@@ -14,10 +14,13 @@ import com.karishma.worksphere.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class BoardRequestService {
@@ -51,5 +54,9 @@ public class BoardRequestService {
     }
     public List<BoardRequest> getAllBoardRequests(){
         return boardRequestRepository.findAll();
+    }
+    public void approveRequest(@PathVariable UUID id)
+    {
+       
     }
 }
