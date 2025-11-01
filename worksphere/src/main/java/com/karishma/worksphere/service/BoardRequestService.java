@@ -37,8 +37,8 @@ public class BoardRequestService {
                 .orElseThrow(() -> new AuthenticationException("Authentication not found"));
 
         BoardRequest boardRequest = BoardRequest.builder()
-                .board_name(request.getBoard_name())
-                .board_key(request.getBoard_key())
+                .board_request_name(request.getBoard_name())
+                .board_request_key(request.getBoard_key())
                 .requester(auth.getUser())
                 .description(request.getDescription())
                 .justification(request.getJustification())
@@ -50,7 +50,7 @@ public class BoardRequestService {
                 .status(201)
                 .body(Map.of(
                         "message", "Board created successfully",
-                        "boardName", boardRequest.getBoard_name(),
+                        "boardName", boardRequest.getBoard_request_name(),
                         "boardId",boardRequest.getBoard_request_id(),
                         "requestedBy", auth.getEmail()
                 ));
@@ -79,7 +79,7 @@ public class BoardRequestService {
         }
         Optional<Auth> adminauth=authRepository.findByEmail(auth.getName());
         Auth authAdmin=adminauth.get();
-        
+
 
     }
 }

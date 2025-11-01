@@ -20,9 +20,9 @@ public class BoardRequest {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID board_request_id;
     @Column(nullable = false,unique = true)
-    private String board_name;
+    private String board_request_name;
     @Column(nullable = false,unique=true)
-    private String board_key;
+    private String board_request_key;
     @Column(nullable = false)
     private String description;
 
