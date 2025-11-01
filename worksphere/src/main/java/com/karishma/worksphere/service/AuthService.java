@@ -58,6 +58,8 @@ public class AuthService {
     }
     public LoginResponse loginUser(LoginRequest request)
     {
+        System.out.println("Fetching auth for email: " + request.getEmail());
+
         Optional<Auth> optionalAuth = authRepository.findByEmail(request.getEmail());
         System.out.println("Saved auth: " + authRepository.findByEmail(request.getEmail()));
 

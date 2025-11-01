@@ -20,9 +20,9 @@ public class BoardRequest {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID board_request_id;
     @Column(nullable = false,unique = true)
-    private String project_name;
+    private String board_name;
     @Column(nullable = false,unique=true)
-    private String project_key;
+    private String board_key;
     @Column(nullable = false)
     private String description;
 
@@ -40,7 +40,9 @@ public class BoardRequest {
     @OneToOne
     @JoinColumn(name="reviewer_id")
     private User reviewedBy;
+    private LocalDateTime rejectedAt;
+    private LocalDateTime approvedAt;
     private String rejection_reason;
-    
+
 
 }
