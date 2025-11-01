@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 @Service
@@ -44,7 +45,11 @@ public class BoardRequestService {
                 .body(Map.of(
                         "message", "Board created successfully",
                         "boardName", boardRequest.getBoard_name(),
+                        "boardId",boardRequest.getBoard_request_id(),
                         "requestedBy", auth.getEmail()
                 ));
+    }
+    public List<BoardRequest> getAllBoardRequests(){
+        return boardRequestRepository.findAll();
     }
 }
