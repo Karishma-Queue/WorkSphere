@@ -34,10 +34,10 @@ public class BoardRequest {
     @CreationTimestamp
     @Column(nullable = false,updatable = false)
     private LocalDateTime requestedAt;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name="requester_id",nullable = false)
     private User requester;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name="reviewer_id")
     private User reviewedBy;
     private LocalDateTime rejectedAt;
