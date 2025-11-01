@@ -8,9 +8,9 @@ import com.karishma.worksphere.model.dto.request.BoardRequestDTO;
 import com.karishma.worksphere.model.entity.*;
 import com.karishma.worksphere.model.enums.BoardRole;
 import com.karishma.worksphere.model.enums.Role;
-import com.karishma.worksphere.repository.AuthRepository;
-import com.karishma.worksphere.repository.BoardRequestRepository;
-import com.karishma.worksphere.repository.UserRepository;
+import com.karishma.worksphere.model.enums.Status;
+import com.karishma.worksphere.repository.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -18,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,7 +30,8 @@ public class BoardRequestService {
 
     private final AuthRepository authRepository;
     private final BoardRequestRepository boardRequestRepository;
-
+   private final BoardMemberRepository boardMemberRepository;
+   private final BoardRepository boardRepository;
     public ResponseEntity<?> createRequest(BoardRequestDTO request, String email) {
 
         Auth auth = authRepository.findByEmail(email)
@@ -57,43 +59,41 @@ public class BoardRequestService {
     public List<BoardRequest> getAllBoardRequests(){
         return boardRequestRepository.findAll();
     }
-    public void approveRequest(@PathVariable UUID id)
-    {
-        BoardRequest boardRequest=boardRequestRepository.findById(id)
-                .orElseThrow(() -> new BoardRequestException("Board request not found with id: " +id));
-        if(!boardRequest.getStatus().equals("PENDING"))
-        {
-            throw new BoardRequestException("This request already has already been "+boardRequest.getStatus());
-        }
-        Authentication auth= SecurityContextHolder.getContext().getAuthentication();
-        if(auth==null || !auth.isAuthenticated())
-        {
-            throw new AuthenticationException("User not authenticated");
+    @Transactional
+    public void approveRequest(@PathVariable UUID id) {
+        BoardRequest boardRequest = boardRequestRepository.findById(id)
+                .orElseThrow(() -> new BoardRequestException("Board request not found with id: " + id));
 
+        if (!Status.PENDING.equals(boardRequest.getStatus())) {
+            throw new BoardRequestException("This request has already been " + boardRequest.getStatus());
         }
-        Optional<BoardRequest>boardrequest1=boardRequestRepository.findById(id);
-        BoardRequest boardrequest=boardrequest1.get();
 
-        if(!authRepository.findByEmail(auth.getName()).isPresent())
-        {
-            throw new RuntimeException("No entry found");
-
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new AuthenticationException("User not authenticated") {};
         }
-        Optional<Auth> adminauth=authRepository.findByEmail(auth.getName());
-        Auth authAdmin=adminauth.get();
-        Board board=Board.builder()
-                .board_name(boardrequest.getBoard_request_name())
-                .board_key(boardrequest.getBoard_request_key())
-                .description(boardrequest.getDescription())
-                .createdBy(boardrequest.getRequester())
+
+        Auth authAdmin = authRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new UserNotFoundException("Admin not found with email: " + auth.getName()));
+        User admin = authAdmin.getUser();
+
+        Board board = Board.builder()
+                .board_name(boardRequest.getBoard_request_name())
+                .board_key(boardRequest.getBoard_request_key())
+                .description(boardRequest.getDescription())
+                .createdBy(boardRequest.getRequester())
                 .build();
+        boardRepository.save(board);
 
-        BoardMember boardMember=BoardMember.builder()
+        BoardMember boardMember = BoardMember.builder()
                 .board(board)
                 .user(board.getCreatedBy())
                 .boardRole(BoardRole.PROJECT_ADMIN)
                 .build();
+        boardMemberRepository.save(boardMember);
 
-
+        boardRequest.setStatus(Status.APPROVED);
+        boardRequest.setApprovedAt(LocalDateTime.now());
+        boardRequest.setReviewedBy(admin);
     }
 }
