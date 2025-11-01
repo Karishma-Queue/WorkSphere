@@ -46,4 +46,16 @@ public class GlobalExceptionHandler {
     {
         return new ResponseEntity<>(e.getMessage(),HttpStatus.FORBIDDEN);
     }
+    @ExceptionHandler(BoardRequestException.class)
+    public ResponseEntity<String> handleBoardRequestException(BoardRequestException e)
+    {
+        return new ResponseEntity<>(e.getMessage(),HttpStatus.NOT_FOUND);
+    }
+    @ExceptionHandler(RequestAlreadyProcessedException.class)
+
+    public ResponseEntity<String> handleRequestAlreadyProcessedException(BoardRequestException e)
+    {
+        return new ResponseEntity<>(e.getMessage(),HttpStatus.NOT_FOUND);
+    }
+
 }

@@ -1,6 +1,7 @@
 package com.karishma.worksphere.service;
 
 import com.karishma.worksphere.exception.AuthenticationException;
+import com.karishma.worksphere.exception.BoardRequestException;
 import com.karishma.worksphere.exception.MemberOnlyException;
 import com.karishma.worksphere.exception.UserNotFoundException;
 import com.karishma.worksphere.model.dto.request.BoardRequestDTO;
@@ -13,6 +14,8 @@ import com.karishma.worksphere.repository.BoardRequestRepository;
 import com.karishma.worksphere.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -57,6 +60,26 @@ public class BoardRequestService {
     }
     public void approveRequest(@PathVariable UUID id)
     {
-       
+        BoardRequest boardRequest=boardRequestRepository.findById(id)
+                .orElseThrow(() -> new BoardRequestException("Board request not found with id: " +id));
+        if(!boardRequest.getStatus().equals("PENDING"))
+        {
+            throw new BoardRequestException("This request already has already been "+boardRequest.getStatus());
+        }
+        Authentication auth= SecurityContextHolder.getContext().getAuthentication();
+        if(auth==null || !auth.isAuthenticated())
+        {
+            throw new AuthenticationException("User not authenticated");
+
+        }
+        if(!authRepository.findByEmail(auth.getName()).isPresent())
+        {
+            throw new RuntimeException("No entry found");
+
+        }
+        Optional<Auth> adminauth=authRepository.findByEmail(auth.getName());
+        Auth authAdmin=adminauth.get();
+        
+
     }
 }
