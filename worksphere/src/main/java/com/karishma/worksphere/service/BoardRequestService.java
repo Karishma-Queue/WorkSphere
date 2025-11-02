@@ -5,6 +5,7 @@ import com.karishma.worksphere.exception.BoardRequestException;
 import com.karishma.worksphere.exception.MemberOnlyException;
 import com.karishma.worksphere.exception.UserNotFoundException;
 import com.karishma.worksphere.model.dto.request.BoardRequestDTO;
+import com.karishma.worksphere.model.dto.request.RejectRequestDTO;
 import com.karishma.worksphere.model.entity.*;
 import com.karishma.worksphere.model.enums.BoardRole;
 import com.karishma.worksphere.model.enums.Role;
@@ -30,16 +31,17 @@ public class BoardRequestService {
 
     private final AuthRepository authRepository;
     private final BoardRequestRepository boardRequestRepository;
-   private final BoardMemberRepository boardMemberRepository;
-   private final BoardRepository boardRepository;
+    private final BoardMemberRepository boardMemberRepository;
+    private final BoardRepository boardRepository;
+
     public ResponseEntity<?> createRequest(BoardRequestDTO request, String email) {
 
         Auth auth = authRepository.findByEmail(email)
                 .orElseThrow(() -> new AuthenticationException("Authentication not found"));
 
         BoardRequest boardRequest = BoardRequest.builder()
-                .board_request_name(request.getBoard_name())
-                .board_request_key(request.getBoard_key())
+                .board_request_name(request.getBoard_request_name())
+                .board_request_key(request.getBoard_request_key())
                 .requester(auth.getUser())
                 .description(request.getDescription())
                 .justification(request.getJustification())
@@ -52,13 +54,15 @@ public class BoardRequestService {
                 .body(Map.of(
                         "message", "Board created successfully",
                         "boardName", boardRequest.getBoard_request_name(),
-                        "boardId",boardRequest.getBoard_request_id(),
+                        "boardId", boardRequest.getBoard_request_id(),
                         "requestedBy", auth.getEmail()
                 ));
     }
-    public List<BoardRequest> getAllBoardRequests(){
+
+    public List<BoardRequest> getAllBoardRequests() {
         return boardRequestRepository.findAll();
     }
+
     @Transactional
     public void approveRequest(@PathVariable UUID id) {
         BoardRequest boardRequest = boardRequestRepository.findById(id)
@@ -70,7 +74,8 @@ public class BoardRequestService {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
-            throw new AuthenticationException("User not authenticated") {};
+            throw new AuthenticationException("User not authenticated") {
+            };
         }
 
         Auth authAdmin = authRepository.findByEmail(auth.getName())
@@ -95,5 +100,33 @@ public class BoardRequestService {
         boardRequest.setStatus(Status.APPROVED);
         boardRequest.setApprovedAt(LocalDateTime.now());
         boardRequest.setReviewedBy(admin);
+    }
+
+    @Transactional
+    public void rejectRequest(@PathVariable UUID id, RejectRequestDTO request) {
+        BoardRequest boardRequest = boardRequestRepository.findById(id)
+                .orElseThrow(() -> new BoardRequestException("Board request not found with id: " + id));
+
+        if (!Status.PENDING.equals(boardRequest.getStatus())) {
+            throw new BoardRequestException("This request has already been " + boardRequest.getStatus());
+        }
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw new org.springframework.security.core.AuthenticationException("User not authenticated") {
+            };
+        }
+
+        Auth authAdmin = authRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new UserNotFoundException("Admin not found with email: " + auth.getName()));
+        User admin = authAdmin.getUser();
+
+        boardRequest.setReviewedBy(admin);
+        boardRequest.setRejectedAt(LocalDateTime.now());
+        boardRequest.setStatus(Status.REJECTED);
+
+        if (request != null && request.getRejection_reason() != null) {
+            boardRequest.setRejection_reason(request.getRejection_reason());
+        }
     }
 }

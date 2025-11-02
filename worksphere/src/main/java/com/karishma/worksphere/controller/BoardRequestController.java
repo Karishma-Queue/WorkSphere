@@ -1,6 +1,7 @@
 package com.karishma.worksphere.controller;
 
 import com.karishma.worksphere.model.dto.request.BoardRequestDTO;
+import com.karishma.worksphere.model.dto.request.RejectRequestDTO;
 import com.karishma.worksphere.model.entity.BoardRequest;
 import com.karishma.worksphere.repository.AuthRepository;
 import com.karishma.worksphere.security.annotation.AllowOnlyAdmin;
@@ -43,13 +44,19 @@ public class BoardRequestController {
 
     }
     @AllowOnlyAdmin
-    @PostMapping("/project-request/{id}/reject")
+    @PostMapping("/project-request/{id}/approve")
     public ResponseEntity<?> approveRequest(@PathVariable UUID id)
     {
         boardRequestService.approveRequest(id);
        return ResponseEntity.ok("Request approved for "+id);
     }
-
+    @AllowOnlyAdmin
+   @PostMapping("/project-request/{id}/reject")
+    public ResponseEntity<?> rejectRequest(@PathVariable UUID id,@RequestBody RejectRequestDTO request)
+    {
+        boardRequestService.rejectRequest(id,request);
+        return ResponseEntity.ok("Request rejected for "+id);
+    }
 
 
 
