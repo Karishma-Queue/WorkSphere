@@ -1,9 +1,6 @@
 package com.karishma.worksphere.service;
 
-import com.karishma.worksphere.exception.AuthenticationException;
-import com.karishma.worksphere.exception.BoardRequestException;
-import com.karishma.worksphere.exception.MemberOnlyException;
-import com.karishma.worksphere.exception.UserNotFoundException;
+import com.karishma.worksphere.exception.*;
 import com.karishma.worksphere.model.dto.request.BoardRequestDTO;
 import com.karishma.worksphere.model.dto.request.BoardRequestUpdateDTO;
 import com.karishma.worksphere.model.dto.request.RejectRequestDTO;
@@ -140,7 +137,7 @@ public class BoardRequestService {
             throw User_not_authenticated;
         }
         Auth authMember = authRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new UserNotFoundException("Admin not found with email: " + auth.getName()));
+                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + auth.getName()));
         User member = authMember.getUser();
         return member;
     }
@@ -164,7 +161,12 @@ public class BoardRequestService {
   public void updateMyRequest(UUID id, BoardRequestUpdateDTO request)
   {
       BoardRequest boardRequest=boardRequestRepository.findById(id)
-              .orElseThrow()->new
-  }
+              .orElseThrow(()->new NotFoundException("No such board-request id exists"));
+      if(!boardRequest.getStatus().equals(Status.PENDING))
+      {
+          throw new RequestAlreadyProcessedException("This request has already been processed");
 
+      }
+
+  }
 }
