@@ -5,6 +5,7 @@ import com.karishma.worksphere.exception.BoardRequestException;
 import com.karishma.worksphere.exception.MemberOnlyException;
 import com.karishma.worksphere.exception.UserNotFoundException;
 import com.karishma.worksphere.model.dto.request.BoardRequestDTO;
+import com.karishma.worksphere.model.dto.request.BoardRequestUpdateDTO;
 import com.karishma.worksphere.model.dto.request.RejectRequestDTO;
 import com.karishma.worksphere.model.dto.response.BoardRequestResponse;
 import com.karishma.worksphere.model.entity.*;
@@ -160,5 +161,10 @@ public class BoardRequestService {
                 .toList();
 
     }
+  public void updateMyRequest(UUID id, BoardRequestUpdateDTO request)
+  {
+      BoardRequest boardRequest=boardRequestRepository.findById(id)
+              .orElseThrow()->new
+  }
 
 }

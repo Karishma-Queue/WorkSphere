@@ -1,6 +1,7 @@
 package com.karishma.worksphere.controller;
 
 import com.karishma.worksphere.model.dto.request.BoardRequestDTO;
+import com.karishma.worksphere.model.dto.request.BoardRequestUpdateDTO;
 import com.karishma.worksphere.model.dto.request.RejectRequestDTO;
 import com.karishma.worksphere.model.dto.response.BoardRequestResponse;
 import com.karishma.worksphere.model.entity.BoardRequest;
@@ -82,7 +83,16 @@ public class BoardRequestController {
         return ResponseEntity.ok(responses);
     }
 
+    //Updating board request( MEMBER CONTROL)
+    @AllowOnlyMember
+    @PutMapping("/my-requests/{id}/update")
 
+    public ResponseEntity<String> updateMyRequest(@PathVariable UUID id, @RequestBody BoardRequestUpdateDTO request)
+    {
+        boardRequestService.updateMyRequest(id,request);
+        return ResponseEntity.ok("Project-request updated successfully with id "+id);
+
+    }
 
 }
 
