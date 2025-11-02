@@ -6,6 +6,7 @@ import com.karishma.worksphere.exception.MemberOnlyException;
 import com.karishma.worksphere.exception.UserNotFoundException;
 import com.karishma.worksphere.model.dto.request.BoardRequestDTO;
 import com.karishma.worksphere.model.dto.request.RejectRequestDTO;
+import com.karishma.worksphere.model.dto.response.BoardRequestResponse;
 import com.karishma.worksphere.model.entity.*;
 import com.karishma.worksphere.model.enums.BoardRole;
 import com.karishma.worksphere.model.enums.Role;
@@ -72,15 +73,8 @@ public class BoardRequestService {
             throw new BoardRequestException("This request has already been " + boardRequest.getStatus());
         }
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            throw new AuthenticationException("User not authenticated") {
-            };
-        }
-
-        Auth authAdmin = authRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new UserNotFoundException("Admin not found with email: " + auth.getName()));
-        User admin = authAdmin.getUser();
+        User admin = authUser(new AuthenticationException("User not authenticated") {
+        });
 
         Board board = Board.builder()
                 .board_name(boardRequest.getBoard_request_name())
@@ -129,4 +123,42 @@ public class BoardRequestService {
             boardRequest.setRejection_reason(request.getRejection_reason());
         }
     }
+
+    public List<BoardRequestResponse> myAllRequests() {
+        User member = authUser(new AuthenticationException("User not authenticated"));
+        List<BoardRequest> boardRequestList= boardRequestRepository.findByRequester(member);
+        return boardRequestList.stream()
+                .map(this::mapToDTO)
+                .toList();
+
+    }
+
+    private User authUser(AuthenticationException User_not_authenticated) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || !auth.isAuthenticated()) {
+            throw User_not_authenticated;
+        }
+        Auth authMember = authRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new UserNotFoundException("Admin not found with email: " + auth.getName()));
+        User member = authMember.getUser();
+        return member;
+    }
+
+    private BoardRequestResponse mapToDTO(BoardRequest entity) {
+        BoardRequestResponse dto = new BoardRequestResponse();
+        dto.setId(entity.getBoard_request_id());
+        dto.setName(entity.getBoard_request_name());
+        dto.setRequesterName(entity.getRequester());
+        return dto;
+    }
+    public List<BoardRequestResponse> myRequestsByStatus(Status status)
+    {
+        User member = authUser(new AuthenticationException("User not authenticated"));
+        List<BoardRequest> boardRequestList= boardRequestRepository.findByRequesterAndStatus(member,status);
+        return boardRequestList.stream()
+                .map(this::mapToDTO)
+                .toList();
+
+    }
+
 }

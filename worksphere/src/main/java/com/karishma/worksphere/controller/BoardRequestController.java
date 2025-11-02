@@ -2,12 +2,15 @@ package com.karishma.worksphere.controller;
 
 import com.karishma.worksphere.model.dto.request.BoardRequestDTO;
 import com.karishma.worksphere.model.dto.request.RejectRequestDTO;
+import com.karishma.worksphere.model.dto.response.BoardRequestResponse;
 import com.karishma.worksphere.model.entity.BoardRequest;
+import com.karishma.worksphere.model.enums.Status;
 import com.karishma.worksphere.repository.AuthRepository;
 import com.karishma.worksphere.security.annotation.AllowOnlyAdmin;
 import com.karishma.worksphere.security.annotation.AllowOnlyMember;
 import com.karishma.worksphere.service.BoardRequestService;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.internal.build.AllowNonPortable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -18,44 +21,65 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping("/api/project-request")
 public class BoardRequestController {
     private final BoardRequestService boardRequestService;
     private final AuthRepository authrepository;
-     @AllowOnlyMember
-    @PostMapping("/project-request")
+
+    @AllowOnlyMember
+    @PostMapping
     public ResponseEntity<?> createBoardRequest(@RequestBody BoardRequestDTO request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String userEmail = auth.getName();
         return boardRequestService.createRequest(request, userEmail);
 
     }
+
     @AllowOnlyAdmin
-    @GetMapping("/project-request")
-    public ResponseEntity<List<BoardRequest>> getAllRequests()
-    {
-        List<BoardRequest> requests=boardRequestService.getAllBoardRequests();
-        if(requests.isEmpty())
-        {
+    @GetMapping
+    public ResponseEntity<List<BoardRequest>> getAllRequests() {
+        List<BoardRequest> requests = boardRequestService.getAllBoardRequests();
+        if (requests.isEmpty()) {
             return ResponseEntity.noContent().build();
 
         }
         return ResponseEntity.ok(requests);
 
     }
+
     @AllowOnlyAdmin
-    @PostMapping("/project-request/{id}/approve")
-    public ResponseEntity<?> approveRequest(@PathVariable UUID id)
-    {
+    @PostMapping("/{id}/approve")
+    public ResponseEntity<?> approveRequest(@PathVariable UUID id) {
         boardRequestService.approveRequest(id);
-       return ResponseEntity.ok("Request approved for "+id);
+        return ResponseEntity.ok("Request approved for " + id);
     }
+
     @AllowOnlyAdmin
-   @PostMapping("/project-request/{id}/reject")
-    public ResponseEntity<?> rejectRequest(@PathVariable UUID id,@RequestBody RejectRequestDTO request)
-    {
-        boardRequestService.rejectRequest(id,request);
-        return ResponseEntity.ok("Request rejected for "+id);
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<?> rejectRequest(@PathVariable UUID id, @RequestBody RejectRequestDTO request) {
+        boardRequestService.rejectRequest(id, request);
+        return ResponseEntity.ok("Request rejected for " + id);
+    }
+
+    @AllowOnlyMember
+    @GetMapping("/my-requests")
+    public ResponseEntity<List<BoardRequestResponse>> myAllRequests() {
+        List<BoardRequestResponse> boardRequests = boardRequestService.myAllRequests();
+        return ResponseEntity.ok(boardRequests);
+    }
+
+    @AllowOnlyMember
+    @GetMapping("/my-requests")
+    public ResponseEntity<List<BoardRequestResponse>> getMyRequests(
+            @RequestParam(required = false) Status status) {
+        List<BoardRequestResponse> responses;
+        if (status != null) {
+            responses = boardRequestService.myRequestsByStatus(status);
+        } else {
+            responses = boardRequestService.myAllRequests();
+        }
+
+        return ResponseEntity.ok(responses);
     }
 
 
