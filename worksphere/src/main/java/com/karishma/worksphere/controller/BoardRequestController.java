@@ -103,6 +103,12 @@ public class BoardRequestController {
        return  boardRequestService.getMyRequest(id);
 
     }
+    //ADMIN CAN SEE PROJECT REQUEST BASED ON STATUS
+    @GetMapping("/status")
+    public List<BoardDetailsDTO> getAllRequestsByStatus(@RequestParam Status status)
+    {
+        List<BoardDetailsDTO> boardDetailsDTOS=boardRequestService.getAllRequestsByStatus(status);
+    }
 }
 
 

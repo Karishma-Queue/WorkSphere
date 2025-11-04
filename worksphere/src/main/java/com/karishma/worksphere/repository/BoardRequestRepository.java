@@ -12,4 +12,5 @@ import java.util.UUID;
 public interface BoardRequestRepository extends JpaRepository <BoardRequest, UUID> {
     List<BoardRequest> findByRequester(User user);
     List<BoardRequest> findByRequesterAndStatus(User user, Status status);
+    List<BoardRequest> findByStatus(Status status);
 }

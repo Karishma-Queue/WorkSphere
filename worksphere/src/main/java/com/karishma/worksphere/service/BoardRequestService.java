@@ -236,5 +236,32 @@ public BoardDetailsDTO getMyRequest(@PathVariable UUID id)
             .build();
     return boardDetailsDTO;
 }
+public List<BoardDetailsDTO> getAllRequestsByStatus(Status status)
+{
+    List<BoardRequest> boardRequestList =boardRequestRepository.findByStatus(status);
+    return boardRequestList.stream()
+            .map(this::mapTodetailsDTO)
+            .toList();
+
+
+
+}
+    private BoardDetailsDTO mapTodetailsDTO(BoardRequest entity) {
+        BoardDetailsDTO dto = new BoardDetailsDTO();
+        dto.setBoard_request_id(entity.getBoard_request_id());
+        dto.setBoard_request_name(entity.getBoard_request_name());
+        dto.setBoard_request_key(entity.getBoard_request_key());
+        dto.setJustification(entity.getJustification());
+        dto.setDescription(entity.getDescription());
+        dto.setRequester(entity.getRequester());
+        dto.setRequestedAt(entity.getRequestedAt());
+        dto.setApprovedAt(entity.getApprovedAt());
+        dto.setRejectedAt(entity.getRejectedAt());
+        dto.setStatus(entity.getStatus());
+        dto.setReviewedBy(entity.getReviewedBy());
+
+        return dto;
+    }
+
 
 }
