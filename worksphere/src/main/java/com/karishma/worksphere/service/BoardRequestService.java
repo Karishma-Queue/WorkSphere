@@ -158,15 +158,52 @@ public class BoardRequestService {
                 .toList();
 
     }
-  public void updateMyRequest(UUID id, BoardRequestUpdateDTO request)
-  {
-      BoardRequest boardRequest=boardRequestRepository.findById(id)
-              .orElseThrow(()->new NotFoundException("No such board-request id exists"));
-      if(!boardRequest.getStatus().equals(Status.PENDING))
-      {
-          throw new RequestAlreadyProcessedException("This request has already been processed");
+    @Transactional
+  public void updateMyRequest(UUID id, BoardRequestUpdateDTO request) {
+      User proj_admin = authUser(new AuthenticationException("User not authenticated"));
 
+      BoardRequest boardRequest = boardRequestRepository.findById(id)
+
+              .orElseThrow(() -> new NotFoundException("No such board-request id exists"));
+      if (!boardRequest.getRequester().equals(proj_admin)) {
+          throw new AccessNotGivenException("You can only update your own requests");
       }
 
+
+      if (!Status.PENDING.equals(boardRequest.getStatus())) {
+          throw new RequestAlreadyProcessedException("This request has already been processed");
+      }
+
+      if (request.getBoard_request_name() != null && !request.getBoard_request_name().isBlank()) {
+          boardRequest.setBoard_request_name(request.getBoard_request_name());
+      }
+      if (request.getDescription() != null && !request.getDescription().isBlank()) {
+          boardRequest.setDescription(request.getDescription());
+      }
+      if (request.getBoard_request_key() != null && !request.getBoard_request_key().isBlank()) {
+          boardRequest.setBoard_request_key(request.getBoard_request_key());
+      }
+      if (request.getJustification() != null && !request.getJustification().isBlank()) {
+          boardRequest.setJustification(request.getJustification());
+      }
+      boardRequestRepository.save(boardRequest);
   }
+  @Transactional
+ public void deleteMyRequest(@PathVariable UUID id)
+ {
+     User proj_admin = authUser(new AuthenticationException("User not authenticated"));
+     BoardRequest boardRequest = boardRequestRepository.findById(id)
+
+             .orElseThrow(() -> new NotFoundException("No such board-request id exists"));
+     if (!boardRequest.getRequester().equals(proj_admin)) {
+         throw new AccessNotGivenException("You can only delete your own requests");
+     }
+     if (!Status.PENDING.equals(boardRequest.getStatus())) {
+         throw new RequestAlreadyProcessedException("This request has already been processed");
+     }
+     boardRequestRepository.delete(boardRequest);
+ }
+//Get specific board id request
+
+
 }

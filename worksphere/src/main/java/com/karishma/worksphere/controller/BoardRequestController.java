@@ -3,6 +3,7 @@ package com.karishma.worksphere.controller;
 import com.karishma.worksphere.model.dto.request.BoardRequestDTO;
 import com.karishma.worksphere.model.dto.request.BoardRequestUpdateDTO;
 import com.karishma.worksphere.model.dto.request.RejectRequestDTO;
+import com.karishma.worksphere.model.dto.response.BoardDetailsDTO;
 import com.karishma.worksphere.model.dto.response.BoardRequestResponse;
 import com.karishma.worksphere.model.entity.BoardRequest;
 import com.karishma.worksphere.model.enums.Status;
@@ -93,7 +94,18 @@ public class BoardRequestController {
         return ResponseEntity.ok("Project-request updated successfully with id "+id);
 
     }
+    @DeleteMapping("/my-requests/{id}/delete")
+    public ResponseEntity<String> deleteMyRequest(@PathVariable UUID id)
+    {
+        boardRequestService.deleteMyRequest(id);
+        return ResponseEntity.ok("Project-request deleted successfully with id"+id);
 
+    }
+    @GetMapping("/my-projects/{id}")
+    public BoardDetailsDTO getMyRequest(@PathVariable UUID id)
+    {
+        boardRequestService.getMyRequest()
+    }
 }
 
 
