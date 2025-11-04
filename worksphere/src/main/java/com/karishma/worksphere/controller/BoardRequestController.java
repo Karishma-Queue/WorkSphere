@@ -27,7 +27,7 @@ import java.util.UUID;
 public class BoardRequestController {
     private final BoardRequestService boardRequestService;
     private final AuthRepository authrepository;
-
+  //creating request
     @AllowOnlyMember
     @PostMapping
     public ResponseEntity<?> createBoardRequest(@RequestBody BoardRequestDTO request) {
@@ -36,7 +36,7 @@ public class BoardRequestController {
         return boardRequestService.createRequest(request, userEmail);
 
     }
-
+ //getting all requests for admin
     @AllowOnlyAdmin
     @GetMapping
     public ResponseEntity<List<BoardRequest>> getAllRequests() {
@@ -48,27 +48,21 @@ public class BoardRequestController {
         return ResponseEntity.ok(requests);
 
     }
-
+//approving requests by admin
     @AllowOnlyAdmin
     @PostMapping("/{id}/approve")
     public ResponseEntity<?> approveRequest(@PathVariable UUID id) {
         boardRequestService.approveRequest(id);
         return ResponseEntity.ok("Request approved for " + id);
     }
-
+//rejecting requests by admin
     @AllowOnlyAdmin
     @PostMapping("/{id}/reject")
     public ResponseEntity<?> rejectRequest(@PathVariable UUID id, @RequestBody RejectRequestDTO request) {
         boardRequestService.rejectRequest(id, request);
         return ResponseEntity.ok("Request rejected for " + id);
     }
-
-    @AllowOnlyMember
-    @GetMapping("/my-requests")
-    public ResponseEntity<List<BoardRequestResponse>> myAllRequests() {
-        List<BoardRequestResponse> boardRequests = boardRequestService.myAllRequests();
-        return ResponseEntity.ok(boardRequests);
-    }
+//getting requests made by a particular member
 
     @AllowOnlyMember
     @GetMapping("/my-requests")
@@ -94,6 +88,7 @@ public class BoardRequestController {
         return ResponseEntity.ok("Project-request updated successfully with id "+id);
 
     }
+    //Deleting board request (MEMBER CONTROL)
     @DeleteMapping("/my-requests/{id}/delete")
     public ResponseEntity<String> deleteMyRequest(@PathVariable UUID id)
     {
@@ -101,10 +96,12 @@ public class BoardRequestController {
         return ResponseEntity.ok("Project-request deleted successfully with id"+id);
 
     }
+    //GET PARTICULAR PROJECT ID
     @GetMapping("/my-projects/{id}")
     public BoardDetailsDTO getMyRequest(@PathVariable UUID id)
     {
-        boardRequestService.getMyRequest()
+       return  boardRequestService.getMyRequest(id);
+
     }
 }
 

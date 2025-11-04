@@ -4,6 +4,7 @@ import com.karishma.worksphere.exception.*;
 import com.karishma.worksphere.model.dto.request.BoardRequestDTO;
 import com.karishma.worksphere.model.dto.request.BoardRequestUpdateDTO;
 import com.karishma.worksphere.model.dto.request.RejectRequestDTO;
+import com.karishma.worksphere.model.dto.response.BoardDetailsDTO;
 import com.karishma.worksphere.model.dto.response.BoardRequestResponse;
 import com.karishma.worksphere.model.entity.*;
 import com.karishma.worksphere.model.enums.BoardRole;
@@ -73,6 +74,10 @@ public class BoardRequestService {
 
         User admin = authUser(new AuthenticationException("User not authenticated") {
         });
+        if(admin.getRole()!=Role.ADMIN)
+        {
+            throw new AccessNotGivenException("Only admin allowed");
+        }
 
         Board board = Board.builder()
                 .board_name(boardRequest.getBoard_request_name())
@@ -112,6 +117,10 @@ public class BoardRequestService {
         Auth authAdmin = authRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new UserNotFoundException("Admin not found with email: " + auth.getName()));
         User admin = authAdmin.getUser();
+        if(admin.getRole()!=Role.ADMIN)
+        {
+            throw new AccessNotGivenException("Only admin allowed");
+        }
 
         boardRequest.setReviewedBy(admin);
         boardRequest.setRejectedAt(LocalDateTime.now());
@@ -204,6 +213,28 @@ public class BoardRequestService {
      boardRequestRepository.delete(boardRequest);
  }
 //Get specific board id request
+public BoardDetailsDTO getMyRequest(@PathVariable UUID id)
+{
+    User current_user = authUser(new AuthenticationException("User not authenticated"));
+    BoardRequest boardRequest = boardRequestRepository.findById(id)
 
+            .orElseThrow(() -> new NotFoundException("No such board-request id exists"));
+    if (!boardRequest.getRequester().equals(current_user)) {
+        throw new AccessNotGivenException("You can only view your own requests");
+    }
+    BoardDetailsDTO boardDetailsDTO =BoardDetailsDTO.builder()
+            .board_request_id(boardRequest.getBoard_request_id())
+            .board_request_key(boardRequest.getBoard_request_key())
+            .justification(boardRequest.getJustification())
+            .requestedAt(boardRequest.getRequestedAt())
+            .description(boardRequest.getDescription())
+            .status(boardRequest.getStatus())
+            .approvedAt(boardRequest.getApprovedAt())
+            .reviewedBy(boardRequest.getReviewedBy())
+            .rejectedAt(boardRequest.getRejectedAt())
+            .rejection_reason(boardRequest.getRejection_reason())
+            .build();
+    return boardDetailsDTO;
+}
 
 }
