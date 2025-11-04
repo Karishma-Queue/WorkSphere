@@ -20,7 +20,7 @@ public class BoardMemberController {
     {
        return boardMemberService.addBoardMember(id,request);
     }
-    public 
+
 
 
 
