@@ -264,4 +264,24 @@ public List<BoardDetailsDTO> getAllRequestsByStatus(Status status)
     }
 
 
+
+public BoardDetailsDTO getRequestById(UUID id)
+{
+    Authentication auth=SecurityContextHolder.getContext().getAuthentication();
+   Auth optionalAuth=authRepository.findByEmail(auth.getName())
+           .orElseThrow(()->new AuthenticationException("Authentication issue"));
+   User current_user=optionalAuth.getUser();
+   if(current_user.getRole()!=Role.ADMIN)
+   {
+       throw new AccessNotGivenException("Only admin can view this");
+   }
+    BoardRequest boardRequest=boardRequestRepository.findById(id)
+            .orElseThrow(()->new NotFoundException("No such board-request id exists"));
+
+    return mapTodetailsDTO(boardRequest);
+
+
+
+}
+
 }

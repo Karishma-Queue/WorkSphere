@@ -38,7 +38,7 @@ public class BoardRequestController {
     }
  //getting all requests for admin
     @AllowOnlyAdmin
-    @GetMapping
+    @GetMapping("/admin")
     public ResponseEntity<List<BoardRequest>> getAllRequests() {
         List<BoardRequest> requests = boardRequestService.getAllBoardRequests();
         if (requests.isEmpty()) {
@@ -104,10 +104,16 @@ public class BoardRequestController {
 
     }
     //ADMIN CAN SEE PROJECT REQUEST BASED ON STATUS
-    @GetMapping("/status")
+    @GetMapping("/admin/status")
     public List<BoardDetailsDTO> getAllRequestsByStatus(@RequestParam Status status)
     {
         List<BoardDetailsDTO> boardDetailsDTOS=boardRequestService.getAllRequestsByStatus(status);
+        return boardDetailsDTOS;
+    }
+    @GetMapping("/admin/{id}")
+    public BoardDetailsDTO getRequestById(@PathVariable UUID id)
+    {
+        return boardRequestService.getRequestById(id);
     }
 }
 
