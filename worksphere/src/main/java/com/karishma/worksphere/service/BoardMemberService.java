@@ -5,6 +5,7 @@ import com.karishma.worksphere.exception.NotFoundException;
 import com.karishma.worksphere.exception.RequestAlreadyProcessedException;
 import com.karishma.worksphere.model.dto.request.AddBoardMemberDTO;
 import com.karishma.worksphere.model.dto.response.AddBoardMemberResponseDTO;
+import com.karishma.worksphere.model.dto.response.BoardMemberDetailsDTO;
 import com.karishma.worksphere.model.entity.Auth;
 import com.karishma.worksphere.model.entity.Board;
 import com.karishma.worksphere.model.entity.BoardMember;
@@ -14,6 +15,7 @@ import com.karishma.worksphere.repository.BoardMemberRepository;
 import com.karishma.worksphere.repository.BoardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -66,5 +68,34 @@ public class BoardMemberService {
        return ResponseEntity.ok("Member deleted successfully");
 
     }
+    public BoardMemberDetailsDTO getMemberDetails(UUID board_id,UUID board_member_id)
+    {
+        Board board=boardRepository.findById(board_id)
+                .orElseThrow(()->new NotFoundException("No such board_id exists"));
+        BoardMember boardMember=boardMemberRepository.findById(board_member_id)
+                .orElseThrow(()->new NotFoundException("No such board memebr exists"));
+        if(!boardMember.getBoard().getBoard_id().equals(board_id))
+        {
+            throw new NotFoundException("This member does not belong to specified board");
+        }
+        User temp=boardMember.getUser();
+       Auth auth= authRepository.findByUser(temp)
+               .orElseThrow(()->new RuntimeException("Member not authenticated"));
+   BoardMemberDetailsDTO boardMemberDetailsDTO=BoardMemberDetailsDTO.builder()
+           .board_id(boardMember.getBoard().getBoard_id())
+           .board_key(boardMember.getBoard().getBoard_key())
+           .board_name(boardMember.getBoard().getBoard_name())
+           .job_title(boardMember.getUser().getJob_title())
+           .department(boardMember.getUser().getDepartment())
+           .user_id(boardMember.getUser().getUser_id())
+           .user_name(boardMember.getUser().getUser_name())
+           .profile_picture_url(boardMember.getUser().getProfile_picture_url())
+           .boardRole(boardMember.getBoardRole())
+           .email(auth.getEmail())
+           .joinedAt(boardMember.getJoinedAt())
+           .build();
+        return boardMemberDetailsDTO;
+       }
+
 
 }
