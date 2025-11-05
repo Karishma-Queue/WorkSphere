@@ -16,24 +16,33 @@ import java.util.UUID;
 @RequiredArgsConstructor
 
 @RequestMapping("/api/boards")
+
 public class BoardMemberController {
   private final BoardMemberService boardMemberService;
+  @AllowOnlyProjAdmin
+  //creating project member
     @PostMapping("/{board_id}/members")
     public AddBoardMemberResponseDTO addBoardMember(@PathVariable UUID board_id, @RequestBody AddBoardMemberDTO request)
     {
        return boardMemberService.addBoardMember(board_id,request);
     }
+    //deleting a project member
+    @AllowOnlyProjAdmin
     @DeleteMapping("/{board_id}/members/{board_member_id}")
     public ResponseEntity<String> removeBoardMember(@PathVariable UUID board_id, @PathVariable UUID board_member_id)
     {
         return  boardMemberService.removeBoardMember(board_id,board_member_id);
     }
+    //getting detail of a project member
+    @AllowOnlyProjAdmin
     @GetMapping("/{board_id}/members/{board_member_id}")
     public BoardMemberDetailsDTO getMemberDetails(@PathVariable UUID board_id,
                                                   @PathVariable UUID board_member_id)
     {
         return boardMemberService.getMemberDetails(board_id,board_member_id);
     }
+    @AllowOnlyProjAdmin
+    //getting details of all project member of a board
     @GetMapping("/{board_id}/members")
     public ResponseEntity<List<AllBoardMemberDTO>> getBoardMembers(@PathVariable UUID board_id)
     {

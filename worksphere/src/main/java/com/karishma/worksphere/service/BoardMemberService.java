@@ -108,7 +108,6 @@ public class BoardMemberService {
                    .map(member -> AllBoardMemberDTO.builder()
                            .user_id(member.getUser().getUser_id())
                            .user_name(member.getUser().getUser_name())
-                           .email( // if you have auth relation
                            .boardRole(member.getBoardRole())
                            .joinedAt(member.getJoinedAt())
                            .build())

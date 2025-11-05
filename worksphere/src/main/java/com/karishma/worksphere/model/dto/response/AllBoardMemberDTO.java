@@ -15,7 +15,7 @@ import java.util.UUID;
 public class AllBoardMemberDTO {
     private UUID board_member_id;
     private String user_name;
-    private String email;
+    private UUID user_id;
     private BoardRole boardRole;
     private LocalDateTime joinedAt;
 }
