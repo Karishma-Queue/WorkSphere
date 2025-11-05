@@ -21,18 +21,21 @@ public class BoardMemberController {
     {
        return boardMemberService.addBoardMember(board_id,request);
     }
-    @DeleteMapping("/api/boards/{board_id}/members/{board_member_id}")
+    @DeleteMapping("/{board_id}/members/{board_member_id}")
     public ResponseEntity<String> removeBoardMember(@PathVariable UUID board_id, @PathVariable UUID board_member_id)
     {
         return  boardMemberService.removeBoardMember(board_id,board_member_id);
     }
-    @GetMapping("/api/boards/{board_id}/members/{board_member_id}")
+    @GetMapping("/{board_id}/members/{board_member_id}")
     public BoardMemberDetailsDTO getMemberDetails(@PathVariable UUID board_id,
                                                   @PathVariable UUID board_member_id)
     {
         return boardMemberService.getMemberDetails(board_id,board_member_id);
     }
-   
-
+    @GetMapping("/{board_id}/members")
+    public getBoardMembers(@PathVariable UUID board_id)
+    {
+       List<Boar> boardMemberService.getBoardMembers(board_id);
+    }
 
 }
