@@ -16,11 +16,15 @@ import java.util.UUID;
 public class BoardMemberController {
   private final BoardMemberService boardMemberService;
     @PostMapping("/{board_id}/members")
-    public AddBoardMemberResponseDTO addBoardMember(@PathVariable UUID id, @RequestBody AddBoardMemberDTO request)
+    public AddBoardMemberResponseDTO addBoardMember(@PathVariable UUID board_id, @RequestBody AddBoardMemberDTO request)
     {
-       return boardMemberService.addBoardMember(id,request);
+       return boardMemberService.addBoardMember(board_id,request);
     }
-
+    @DeleteMapping("/api/boards/{board_id}/members/{board_member_id}")
+    public removeBoardMember(@PathVariable UUID board_id,@PathVariable UUID board_member_id)
+    {
+        return  boardMemberService.removeBoardMember(board_id,board_member_id);
+    }
 
 
 

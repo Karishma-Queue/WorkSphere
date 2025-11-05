@@ -9,4 +9,6 @@ import java.util.UUID;
 
 public interface BoardMemberRepository extends JpaRepository<BoardMember, UUID> {
   boolean existsByBoardAndUser(Board board, User user);
+ boolean existsByBoardAndBoardMember(Board board,BoardMember boardMember);
+ BoardMember findByBoardAndBoardMember(Board board,BoardMember boardMember);
 }

@@ -52,5 +52,19 @@ public class BoardMemberService {
        return response;
 
     }
+    public ResponseEntity<String> removeBoardMember(UUID board_id,UUID board_member_id){
+       Board board= boardRepository.findById(board_id)
+               .orElseThrow(()->new NotFoundException("There is no board with id "+board_id));
+       BoardMember boardMember=boardMemberRepository.findById(board_member_id)
+               .orElseThrow(()->new NotFoundException("There is no member with id "+board_member_id));
+        if (!boardMember.getBoard().getBoard_id().equals(board_id)) {
+            throw new NotFoundException("This member does not belong to the specified board");
+        }
 
+
+       boardMemberRepository.delete(boardMember);
+       return ResponseEntity.ok("Member deleted successfully");
+
+    }
+  
 }
