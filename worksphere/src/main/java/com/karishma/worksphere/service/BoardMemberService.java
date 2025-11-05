@@ -66,5 +66,5 @@ public class BoardMemberService {
        return ResponseEntity.ok("Member deleted successfully");
 
     }
-  
+
 }
