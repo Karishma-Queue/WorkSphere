@@ -5,6 +5,7 @@ import com.karishma.worksphere.exception.NotFoundException;
 import com.karishma.worksphere.exception.RequestAlreadyProcessedException;
 import com.karishma.worksphere.model.dto.request.AddBoardMemberDTO;
 import com.karishma.worksphere.model.dto.response.AddBoardMemberResponseDTO;
+import com.karishma.worksphere.model.dto.response.AllBoardMemberDTO;
 import com.karishma.worksphere.model.dto.response.BoardMemberDetailsDTO;
 import com.karishma.worksphere.model.entity.Auth;
 import com.karishma.worksphere.model.entity.Board;
@@ -18,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -81,7 +83,7 @@ public class BoardMemberService {
         User temp=boardMember.getUser();
        Auth auth= authRepository.findByUser(temp)
                .orElseThrow(()->new RuntimeException("Member not authenticated"));
-   BoardMemberDetailsDTO boardMemberDetailsDTO=BoardMemberDetailsDTO.builder()
+       BoardMemberDetailsDTO boardMemberDetailsDTO=BoardMemberDetailsDTO.builder()
            .board_id(boardMember.getBoard().getBoard_id())
            .board_key(boardMember.getBoard().getBoard_key())
            .board_name(boardMember.getBoard().getBoard_name())
@@ -95,6 +97,26 @@ public class BoardMemberService {
            .joinedAt(boardMember.getJoinedAt())
            .build();
         return boardMemberDetailsDTO;
+       }
+       public List<AllBoardMemberDTO> getBoardMembers(UUID board_id)
+       {
+           Board board=boardRepository.findById(board_id)
+                   .orElseThrow(()->new NotFoundException("No board exists with id "+board_id));
+
+           List<BoardMember>boardMemberList=boardMemberRepository.findByBoardId(board_id);
+           List<AllBoardMemberDTO> dtoList = boardMemberList.stream()
+                   .map(member -> AllBoardMemberDTO.builder()
+                           .user_id(member.getUser().getUser_id())
+                           .user_name(member.getUser().getUser_name())
+                           .email( // if you have auth relation
+                           .boardRole(member.getBoardRole())
+                           .joinedAt(member.getJoinedAt())
+                           .build())
+                   .toList();
+
+           return dtoList;
+
+
        }
 
 
