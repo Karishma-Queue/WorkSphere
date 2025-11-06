@@ -89,6 +89,7 @@ public class BoardRequestController {
 
     }
     //Deleting board request (MEMBER CONTROL)
+    @AllowOnlyMember
     @DeleteMapping("/my-requests/{id}/delete")
     public ResponseEntity<String> deleteMyRequest(@PathVariable UUID id)
     {
@@ -97,6 +98,7 @@ public class BoardRequestController {
 
     }
     //GET PARTICULAR PROJECT ID
+    @AllowOnlyMember
     @GetMapping("/my-projects/{id}")
     public BoardDetailsDTO getMyRequest(@PathVariable UUID id)
     {
@@ -104,12 +106,14 @@ public class BoardRequestController {
 
     }
     //ADMIN CAN SEE PROJECT REQUEST BASED ON STATUS
+      @AllowOnlyAdmin
     @GetMapping("/admin/status")
     public List<BoardDetailsDTO> getAllRequestsByStatus(@RequestParam Status status)
     {
         List<BoardDetailsDTO> boardDetailsDTOS=boardRequestService.getAllRequestsByStatus(status);
         return boardDetailsDTOS;
     }
+    @AllowOnlyAdmin
     @GetMapping("/admin/{id}")
     public BoardDetailsDTO getRequestById(@PathVariable UUID id)
     {
