@@ -1,55 +1,41 @@
 package com.karishma.worksphere.service;
 
+import com.karishma.worksphere.exception.EmailAlreadyExists;
 import com.karishma.worksphere.model.dto.request.SignupRequest;
 import com.karishma.worksphere.model.dto.response.SignupResponse;
+import com.karishma.worksphere.model.entity.Auth;
+import com.karishma.worksphere.model.entity.User;
 import com.karishma.worksphere.model.enums.Role;
 import com.karishma.worksphere.repository.AuthRepository;
+import com.karishma.worksphere.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
+import java.util.UUID;
 
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class AuthServiceTest {
-    @Mock
+    @InjectMocks
     AuthService authService;
     @Mock
     AuthRepository authRepository;
+    @Mock
+    PasswordEncoder passwordEncoder;
+    @Mock
+    CloudinaryService cloudinaryService;
+    User user;
+    @Mock
+    UserRepository userRepository;
+    Auth auth;
     private SignupRequest signupRequest;
-
-    @BeforeEach
-    void setUp()
-    {
-
-        MockMultipartFile mockFile = new MockMultipartFile(
-                "profile_picture",
-                "test.jpg",
-                "image/jpeg",
-                "fake-image-content".getBytes()
-        );
-
-        signupRequest=new SignupRequest();
-        signupRequest.setEmail("test@example.com");
-        signupRequest.setPassword("password123");
-        signupRequest.setUser_name("Test User");
-        signupRequest.setDepartment("Engineering");
-        signupRequest.setJob_title("Developer");
-        signupRequest.setProfile_picture(mockFile);
-        signupRequest.setRole(Role.MEMBER);
-
-    }
-   @Test
-    void testRegisterUser_Success(){
-  when(authRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
-
-          SignupResponse response = authService.registerUser(signupRequest);
-
-   }
-
-}

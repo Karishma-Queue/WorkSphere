@@ -44,7 +44,6 @@ public class AuthService {
                .profile_picture_url(url)
                .build();
        userRepository.save(user);
-        System.out.println("DEBUG - Saved User: " + user);
 
         Auth auth=Auth.builder()
                .email(request.getEmail())
@@ -52,7 +51,6 @@ public class AuthService {
                .hashed_pass(hashedPassword)
                .build();
        authRepository.save(auth);
-        System.out.println("DEBUG - Saved Auth: " + auth);
 
         return new SignupResponse(user.getUser_name(),user.getJob_title(),user.getRole().toString(),user.getDepartment(),user.getProfile_picture_url(),auth.getEmail());
     }
@@ -83,5 +81,6 @@ public class AuthService {
                 .profile_picture_url(user.getProfile_picture_url())
                 .email(auth.getEmail())
                 .token(token)
-                .build();    }
+                .build();
+    }
 }
