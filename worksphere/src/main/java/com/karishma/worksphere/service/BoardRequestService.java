@@ -98,7 +98,7 @@ public class BoardRequestService {
         boardRequest.setApprovedAt(LocalDateTime.now());
         boardRequest.setReviewedBy(admin);
     }
-    
+
     public void rejectRequest(@PathVariable UUID id, RejectRequestDTO request) {
         BoardRequest boardRequest = boardRequestRepository.findById(id)
                 .orElseThrow(() -> new BoardRequestException("Board request not found with id: " + id));
