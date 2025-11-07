@@ -63,7 +63,7 @@ public class BoardRequestService {
         return boardRequestRepository.findAll();
     }
 
-    @Transactional
+
     public void approveRequest(@PathVariable UUID id) {
         BoardRequest boardRequest = boardRequestRepository.findById(id)
                 .orElseThrow(() -> new BoardRequestException("Board request not found with id: " + id));
@@ -98,8 +98,7 @@ public class BoardRequestService {
         boardRequest.setApprovedAt(LocalDateTime.now());
         boardRequest.setReviewedBy(admin);
     }
-
-    @Transactional
+    
     public void rejectRequest(@PathVariable UUID id, RejectRequestDTO request) {
         BoardRequest boardRequest = boardRequestRepository.findById(id)
                 .orElseThrow(() -> new BoardRequestException("Board request not found with id: " + id));
