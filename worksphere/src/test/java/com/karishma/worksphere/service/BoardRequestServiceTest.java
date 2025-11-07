@@ -6,6 +6,7 @@ import com.karishma.worksphere.model.entity.Auth;
 import com.karishma.worksphere.model.entity.BoardRequest;
 import com.karishma.worksphere.model.entity.User;
 import com.karishma.worksphere.model.enums.Role;
+import com.karishma.worksphere.model.enums.Status;
 import com.karishma.worksphere.repository.AuthRepository;
 import com.karishma.worksphere.repository.BoardRequestRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockMultipartFile;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -106,5 +108,38 @@ public class BoardRequestServiceTest {
 
     }
     @Test
+    void getAllBoardRequest_Success()
+    {
+        BoardRequest br1 = BoardRequest.builder()
+                .board_request_id(UUID.randomUUID())
+                .board_request_name("Team Board")
+                .board_request_key("TM001")
+                .description("Board for Team activities")
+                .justification("Team collaboration needed")
+                .requester(user)
+                .status(Status.PENDING)
+                .build();
+
+        BoardRequest br2 = BoardRequest.builder()
+                .board_request_id(UUID.randomUUID())
+                .board_request_name("Project Board")
+                .board_request_key("PR002")
+                .description("Project tracking board")
+                .justification("Project management")
+                .requester(user)
+                .status(Status.PENDING)
+                .build();
+        List<BoardRequest> mockList = List.of(br1, br2);
+
+        when(boardRequestRepository.findAll()).thenReturn(mockList);
+        List<BoardRequest> result = boardRequestService.getAllBoardRequests();
+        assertEquals(2, result.size());
+        assertEquals("Team Board", result.get(0).getBoard_request_name());
+        assertEquals("Project Board", result.get(1).getBoard_request_name());
+
+        verify(boardRequestRepository, times(1)).findAll();
+
+
+    }
 
 }
