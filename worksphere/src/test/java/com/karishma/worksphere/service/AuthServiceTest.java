@@ -1,6 +1,8 @@
 package com.karishma.worksphere.service;
 
 import com.karishma.worksphere.exception.EmailAlreadyExists;
+import com.karishma.worksphere.exception.InvalidCredentialsException;
+import com.karishma.worksphere.exception.UserNotFoundException;
 import com.karishma.worksphere.model.dto.request.LoginRequest;
 import com.karishma.worksphere.model.dto.request.SignupRequest;
 import com.karishma.worksphere.model.dto.response.LoginResponse;
@@ -87,7 +89,7 @@ public class AuthServiceTest {
    @Test
     void testRegisterUser_Success(){
   when(authRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
- when(passwordEncoder.encode(signupRequest.getPassword())).thenReturn("hashpassword123");
+ when(passwordEncoder.encode(signupRequest.getPassword())).thenReturn("hashPassword123");
  when(cloudinaryService.uploadProfilePicture(any())).thenReturn("https://fake.cloudinary.com/test.jpg");
  //fake url stimulates success
 when(userRepository.save(any(User.class))).thenReturn(user);
@@ -136,6 +138,28 @@ when(userRepository.save(any(User.class))).thenReturn(user);
      verify(authRepository, times(1)).findByEmail("test@example.com");
      verify(passwordEncoder, times(1)).matches("password123", "hashedPassword123");
      verify(jwtUtil, times(1)).generateToken("test@example.com", "MEMBER");
+
+ }
+ @Test
+    void testLoginUser_UserNotFound()
+ {
+     when(authRepository.findByEmail("test@example.com")).thenReturn(Optional.empty());
+     assertThrows(UserNotFoundException.class,()->authService.loginUser(loginRequest));
+     verify(authRepository,times(1)).findByEmail("test@example.com");
+     verify(passwordEncoder,never()).matches("password123","hashedPassword123");
+     verify(jwtUtil,never()).generateToken("test@example.com","MEMBER");
+
+ }
+ @Test
+    void testLoginUser_PasswordNotMatch()
+ {
+     when(authRepository.findByEmail("test@example.com")).thenReturn(Optional.of(auth));
+     when(passwordEncoder.matches("password123","hashedPassword123")).thenReturn(false);
+     assertThrows(InvalidCredentialsException.class,()->authService.loginUser(loginRequest));
+     verify(authRepository,times(1)).findByEmail("test@example.com");
+     verify(passwordEncoder,times(1)).matches("password123","hashedPassword123");
+     verify(jwtUtil, never()).generateToken(anyString(), anyString());
+
 
  }
 
