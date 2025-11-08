@@ -64,7 +64,7 @@ public class BoardRequestService {
     }
 
 
-    public void approveRequest(@PathVariable UUID id) {
+    public void approveRequest( UUID id) {
         BoardRequest boardRequest = boardRequestRepository.findById(id)
                 .orElseThrow(() -> new BoardRequestException("Board request not found with id: " + id));
 
@@ -74,10 +74,6 @@ public class BoardRequestService {
 
         User admin = authUser(new AuthenticationException("User not authenticated") {
         });
-        if(admin.getRole()!=Role.ADMIN)
-        {
-            throw new AccessNotGivenException("Only admin allowed");
-        }
 
         Board board = Board.builder()
                 .board_name(boardRequest.getBoard_request_name())
@@ -97,9 +93,10 @@ public class BoardRequestService {
         boardRequest.setStatus(Status.APPROVED);
         boardRequest.setApprovedAt(LocalDateTime.now());
         boardRequest.setReviewedBy(admin);
+        boardRequestRepository.save(boardRequest);
     }
 
-    public void rejectRequest(@PathVariable UUID id, RejectRequestDTO request) {
+    public void rejectRequest(UUID id, RejectRequestDTO request) {
         BoardRequest boardRequest = boardRequestRepository.findById(id)
                 .orElseThrow(() -> new BoardRequestException("Board request not found with id: " + id));
 
@@ -107,19 +104,8 @@ public class BoardRequestService {
             throw new BoardRequestException("This request has already been " + boardRequest.getStatus());
         }
 
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            throw new org.springframework.security.core.AuthenticationException("User not authenticated") {
-            };
-        }
-
-        Auth authAdmin = authRepository.findByEmail(auth.getName())
-                .orElseThrow(() -> new UserNotFoundException("Admin not found with email: " + auth.getName()));
-        User admin = authAdmin.getUser();
-        if(admin.getRole()!=Role.ADMIN)
-        {
-            throw new AccessNotGivenException("Only admin allowed");
-        }
+        User admin = authUser(new AuthenticationException("User not authenticated") {
+        });
 
         boardRequest.setReviewedBy(admin);
         boardRequest.setRejectedAt(LocalDateTime.now());
@@ -128,6 +114,8 @@ public class BoardRequestService {
         if (request != null && request.getRejection_reason() != null) {
             boardRequest.setRejection_reason(request.getRejection_reason());
         }
+        boardRequestRepository.save(boardRequest);
+
     }
 
     public List<BoardRequestResponse> myAllRequests() {
@@ -167,84 +155,81 @@ public class BoardRequestService {
 
     }
     @Transactional
-  public void updateMyRequest(UUID id, BoardRequestUpdateDTO request) {
-      User proj_admin = authUser(new AuthenticationException("User not authenticated"));
+    public void updateMyRequest(UUID id, BoardRequestUpdateDTO request) {
+        User proj_admin = authUser(new AuthenticationException("User not authenticated"));
 
-      BoardRequest boardRequest = boardRequestRepository.findById(id)
+        BoardRequest boardRequest = boardRequestRepository.findById(id)
 
-              .orElseThrow(() -> new NotFoundException("No such board-request id exists"));
-      if (!boardRequest.getRequester().equals(proj_admin)) {
-          throw new AccessNotGivenException("You can only update your own requests");
-      }
+                .orElseThrow(() -> new NotFoundException("No such board-request id exists"));
+        if (!boardRequest.getRequester().equals(proj_admin)) {
+            throw new AccessNotGivenException("You can only update your own requests");
+        }
 
 
-      if (!Status.PENDING.equals(boardRequest.getStatus())) {
-          throw new RequestAlreadyProcessedException("This request has already been processed");
-      }
+        if (!Status.PENDING.equals(boardRequest.getStatus())) {
+            throw new RequestAlreadyProcessedException("This request has already been processed");
+        }
 
-      if (request.getBoard_request_name() != null && !request.getBoard_request_name().isBlank()) {
-          boardRequest.setBoard_request_name(request.getBoard_request_name());
-      }
-      if (request.getDescription() != null && !request.getDescription().isBlank()) {
-          boardRequest.setDescription(request.getDescription());
-      }
-      if (request.getBoard_request_key() != null && !request.getBoard_request_key().isBlank()) {
-          boardRequest.setBoard_request_key(request.getBoard_request_key());
-      }
-      if (request.getJustification() != null && !request.getJustification().isBlank()) {
-          boardRequest.setJustification(request.getJustification());
-      }
-      boardRequestRepository.save(boardRequest);
-  }
-  @Transactional
- public void deleteMyRequest(@PathVariable UUID id)
- {
-     User proj_admin = authUser(new AuthenticationException("User not authenticated"));
-     BoardRequest boardRequest = boardRequestRepository.findById(id)
-
-             .orElseThrow(() -> new NotFoundException("No such board-request id exists"));
-     if (!boardRequest.getRequester().equals(proj_admin)) {
-         throw new AccessNotGivenException("You can only delete your own requests");
-     }
-     if (!Status.PENDING.equals(boardRequest.getStatus())) {
-         throw new RequestAlreadyProcessedException("This request has already been processed");
-     }
-     boardRequestRepository.delete(boardRequest);
- }
-//Get specific board id request
-public BoardDetailsDTO getMyRequest(@PathVariable UUID id)
-{
-    User current_user = authUser(new AuthenticationException("User not authenticated"));
-    BoardRequest boardRequest = boardRequestRepository.findById(id)
-
-            .orElseThrow(() -> new NotFoundException("No such board-request id exists"));
-    if (!boardRequest.getRequester().equals(current_user)) {
-        throw new AccessNotGivenException("You can only view your own requests");
+        if (request.getBoard_request_name() != null && !request.getBoard_request_name().isBlank()) {
+            boardRequest.setBoard_request_name(request.getBoard_request_name());
+        }
+        if (request.getDescription() != null && !request.getDescription().isBlank()) {
+            boardRequest.setDescription(request.getDescription());
+        }
+        if (request.getBoard_request_key() != null && !request.getBoard_request_key().isBlank()) {
+            boardRequest.setBoard_request_key(request.getBoard_request_key());
+        }
+        if (request.getJustification() != null && !request.getJustification().isBlank()) {
+            boardRequest.setJustification(request.getJustification());
+        }
+        boardRequestRepository.save(boardRequest);
     }
-    BoardDetailsDTO boardDetailsDTO =BoardDetailsDTO.builder()
-            .board_request_id(boardRequest.getBoard_request_id())
-            .board_request_key(boardRequest.getBoard_request_key())
-            .justification(boardRequest.getJustification())
-            .requestedAt(boardRequest.getRequestedAt())
-            .description(boardRequest.getDescription())
-            .status(boardRequest.getStatus())
-            .approvedAt(boardRequest.getApprovedAt())
-            .reviewedBy(boardRequest.getReviewedBy())
-            .rejectedAt(boardRequest.getRejectedAt())
-            .rejection_reason(boardRequest.getRejection_reason())
-            .build();
-    return boardDetailsDTO;
-}
-public List<BoardDetailsDTO> getAllRequestsByStatus(Status status)
-{
-    List<BoardRequest> boardRequestList =boardRequestRepository.findByStatus(status);
-    return boardRequestList.stream()
-            .map(this::mapTodetailsDTO)
-            .toList();
+    @Transactional
+    public void deleteMyRequest(@PathVariable UUID id)
+    {
+        User proj_admin = authUser(new AuthenticationException("User not authenticated"));
+        BoardRequest boardRequest = boardRequestRepository.findById(id)
 
+                .orElseThrow(() -> new NotFoundException("No such board-request id exists"));
+        if (!boardRequest.getRequester().equals(proj_admin)) {
+            throw new AccessNotGivenException("You can only delete your own requests");
+        }
+        if (!Status.PENDING.equals(boardRequest.getStatus())) {
+            throw new RequestAlreadyProcessedException("This request has already been processed");
+        }
+        boardRequestRepository.delete(boardRequest);
+    }
+    //Get specific board id request
+    public BoardDetailsDTO getMyRequest(@PathVariable UUID id)
+    {
+        User current_user = authUser(new AuthenticationException("User not authenticated"));
+        BoardRequest boardRequest = boardRequestRepository.findById(id)
 
-
-}
+                .orElseThrow(() -> new NotFoundException("No such board-request id exists"));
+        if (!boardRequest.getRequester().equals(current_user)) {
+            throw new AccessNotGivenException("You can only view your own requests");
+        }
+        BoardDetailsDTO boardDetailsDTO =BoardDetailsDTO.builder()
+                .board_request_id(boardRequest.getBoard_request_id())
+                .board_request_key(boardRequest.getBoard_request_key())
+                .justification(boardRequest.getJustification())
+                .requestedAt(boardRequest.getRequestedAt())
+                .description(boardRequest.getDescription())
+                .status(boardRequest.getStatus())
+                .approvedAt(boardRequest.getApprovedAt())
+                .reviewedBy(boardRequest.getReviewedBy())
+                .rejectedAt(boardRequest.getRejectedAt())
+                .rejection_reason(boardRequest.getRejection_reason())
+                .build();
+        return boardDetailsDTO;
+    }
+    public List<BoardDetailsDTO> getAllRequestsByStatus(Status status)
+    {
+        List<BoardRequest> boardRequestList =boardRequestRepository.findByStatus(status);
+        return boardRequestList.stream()
+                .map(this::mapTodetailsDTO)
+                .toList();
+    }
     private BoardDetailsDTO mapTodetailsDTO(BoardRequest entity) {
         BoardDetailsDTO dto = new BoardDetailsDTO();
         dto.setBoard_request_id(entity.getBoard_request_id());
@@ -262,25 +247,19 @@ public List<BoardDetailsDTO> getAllRequestsByStatus(Status status)
         return dto;
     }
 
+    public BoardDetailsDTO getRequestById(UUID id)
+    {
+        Authentication auth=SecurityContextHolder.getContext().getAuthentication();
+        Auth optionalAuth=authRepository.findByEmail(auth.getName())
+                .orElseThrow(()->new AuthenticationException("Authentication issue"));
+        User current_user=optionalAuth.getUser();
+        if(current_user.getRole()!=Role.ADMIN)
+        {
+            throw new AccessNotGivenException("Only admin can view this");
+        }
+        BoardRequest boardRequest=boardRequestRepository.findById(id)
+                .orElseThrow(()->new NotFoundException("No such board-request id exists"));
 
-
-public BoardDetailsDTO getRequestById(UUID id)
-{
-    Authentication auth=SecurityContextHolder.getContext().getAuthentication();
-   Auth optionalAuth=authRepository.findByEmail(auth.getName())
-           .orElseThrow(()->new AuthenticationException("Authentication issue"));
-   User current_user=optionalAuth.getUser();
-   if(current_user.getRole()!=Role.ADMIN)
-   {
-       throw new AccessNotGivenException("Only admin can view this");
-   }
-    BoardRequest boardRequest=boardRequestRepository.findById(id)
-            .orElseThrow(()->new NotFoundException("No such board-request id exists"));
-
-    return mapTodetailsDTO(boardRequest);
-
-
-
-}
-
+        return mapTodetailsDTO(boardRequest);
+    }
 }
