@@ -214,6 +214,7 @@ public class BoardRequestService {
                 .board_request_key(boardRequest.getBoard_request_key())
                 .justification(boardRequest.getJustification())
                 .requestedAt(boardRequest.getRequestedAt())
+                .board_request_name(boardRequest.getBoard_request_name())
                 .description(boardRequest.getDescription())
                 .status(boardRequest.getStatus())
                 .approvedAt(boardRequest.getApprovedAt())
