@@ -117,7 +117,7 @@ class BoardRequestServiceTest {
 
     // ✅ CREATE REQUEST
     @Test
-    
+
     void testCreateRequest_Success() {
         when(authRepository.findByEmail("member@test.com"))
                 .thenReturn(Optional.of(memberAuth));
