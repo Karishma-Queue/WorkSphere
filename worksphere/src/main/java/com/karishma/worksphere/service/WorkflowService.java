@@ -4,15 +4,14 @@ import com.karishma.worksphere.exception.AccessNotGivenException;
 import com.karishma.worksphere.exception.AuthenticationException;
 import com.karishma.worksphere.exception.BadRequestException;
 import com.karishma.worksphere.exception.NotFoundException;
+import com.karishma.worksphere.model.dto.request.AddStatusDTO;
 import com.karishma.worksphere.model.dto.request.WorkflowRequestDTO;
 import com.karishma.worksphere.model.dto.request.WorkflowUpdateDTO;
 import com.karishma.worksphere.model.dto.response.BoardWorkflowDTO;
+import com.karishma.worksphere.model.dto.response.StatusResponse;
 import com.karishma.worksphere.model.dto.response.WorkflowResponse;
 import com.karishma.worksphere.model.dto.response.WorkflowUpdateResponse;
-import com.karishma.worksphere.model.entity.Auth;
-import com.karishma.worksphere.model.entity.Board;
-import com.karishma.worksphere.model.entity.User;
-import com.karishma.worksphere.model.entity.Workflow;
+import com.karishma.worksphere.model.entity.*;
 import com.karishma.worksphere.repository.AuthRepository;
 import com.karishma.worksphere.repository.BoardRepository;
 import com.karishma.worksphere.repository.WorkflowRepository;
@@ -106,7 +105,7 @@ public class WorkflowService {
 
             else if (!request.getIsDefault() && workflow.isDefault()) {
 
-                long totalWorkflows = workflowRepository.countByBoardId(workflow.getBoard().getBoard_id());
+                long totalWorkflows = workflowRepository.countByBoard_BoardId(workflow.getBoard().getBoard_id());
 
                 if (totalWorkflows <= 1) {
                     throw new BadRequestException(
@@ -125,7 +124,31 @@ public class WorkflowService {
                 .build();
         return response;
     }
-    
+    public void deleteWorkflow(UUID id) {
+        Workflow workflow = workflowRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("No workflow exists with this ID"));
+
+        UUID boardId = workflow.getBoard().getBoard_id();
+
+        long totalWorkflows = workflowRepository.countByBoard_BoardId(boardId);
+
+        if (workflow.isDefault() && totalWorkflows <= 1) {
+            throw new BadRequestException("Cannot delete the only workflow in the board");
+        }
+
+        workflowRepository.delete(workflow);
+    }
+    public StatusResponse addStatus(UUID id, AddStatusDTO request)
+    {
+        Workflow workflow=workflowRepository.findById(id)
+                .orElseThrow(()->new NotFoundException("Workflow does not exist with this id"));
+        WorkflowStatus workflowStatus=WorkflowStatus.builder()
+                .statusName(request.getStatus_name())
+                .workflow(workflow)
+                .build();
+        wo
+
+    }
 
 
 }

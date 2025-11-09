@@ -1,8 +1,10 @@
 package com.karishma.worksphere.controller;
 
+import com.karishma.worksphere.model.dto.request.AddStatusDTO;
 import com.karishma.worksphere.model.dto.request.WorkflowRequestDTO;
 import com.karishma.worksphere.model.dto.request.WorkflowUpdateDTO;
 import com.karishma.worksphere.model.dto.response.BoardWorkflowDTO;
+import com.karishma.worksphere.model.dto.response.StatusResponse;
 import com.karishma.worksphere.model.dto.response.WorkflowResponse;
 import com.karishma.worksphere.model.dto.response.WorkflowUpdateResponse;
 import com.karishma.worksphere.security.annotation.AllowOnlyProjAdmin;
@@ -50,5 +52,11 @@ public class WorkflowController {
     public ResponseEntity<?> deleteWorkflow(@PathVariable UUID workflow_id)
    {
        workflowService.deleteWorkflow(workflow_id);
+       return ResponseEntity.ok("Deleted successfully");
+   }
+   @PostMapping("/{workflow_id}/statuses")
+    public StatusResponse addStatus(@PathVariable UUID workflow_id, @RequestBody AddStatusDTO request)
+   {
+       return workflowService.addStatus(workflow_id,request);
    }
 }
