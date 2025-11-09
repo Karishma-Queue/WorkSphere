@@ -36,7 +36,8 @@ public class Workflow {
     private IssueType issueType;
 
     @Column(name = "is_default", nullable = false)
-    private boolean isDefault;
+    @Builder.Default
+    private boolean isDefault=false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
