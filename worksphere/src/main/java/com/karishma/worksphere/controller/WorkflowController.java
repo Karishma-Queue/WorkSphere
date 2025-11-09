@@ -59,4 +59,10 @@ public class WorkflowController {
    {
        return workflowService.addStatus(workflow_id,request);
    }
+   @DeleteMapping("/{workflow_id}/statuses/{status_id}")
+    public ResponseEntity<String> deleteStatus(@PathVariable UUID workflow_id,@PathVariable UUID status_id)
+   {
+       workflowService.deleteStatus(workflow_id,status_id);
+       return ResponseEntity.ok("Deleted successfully status with id "+status_id);
+   }
 }
