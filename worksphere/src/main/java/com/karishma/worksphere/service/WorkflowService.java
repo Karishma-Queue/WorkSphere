@@ -3,6 +3,7 @@ package com.karishma.worksphere.service;
 import com.karishma.worksphere.exception.AuthenticationException;
 import com.karishma.worksphere.exception.NotFoundException;
 import com.karishma.worksphere.model.dto.request.WorkflowRequestDTO;
+import com.karishma.worksphere.model.dto.response.BoardWorkflowDTO;
 import com.karishma.worksphere.model.dto.response.WorkflowResponse;
 import com.karishma.worksphere.model.entity.Auth;
 import com.karishma.worksphere.model.entity.Board;
@@ -11,11 +12,13 @@ import com.karishma.worksphere.model.entity.Workflow;
 import com.karishma.worksphere.repository.AuthRepository;
 import com.karishma.worksphere.repository.BoardRepository;
 import com.karishma.worksphere.repository.WorkflowRepository;
+import com.karishma.worksphere.security.annotation.BoardIdParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -24,7 +27,7 @@ public class WorkflowService {
     private final WorkflowRepository workflowRepository;
     private final AuthRepository authRepository;
     private final BoardRepository boardRepository;
-    public WorkflowResponse createWorkflow(UUID id, WorkflowRequestDTO request)
+    public WorkflowResponse createWorkflow( UUID id, WorkflowRequestDTO request)
     {
         Board board=boardRepository.findById(id)
                 .orElseThrow(()->new NotFoundException("Board not found"));
@@ -47,9 +50,23 @@ public class WorkflowService {
               .id(workFlow.getWorkflowId())
               .build();
       return response;
-
+    }
+    public List<BoardWorkflowDTO>  getBoardWorkflows(UUID id)
+    {
+        Board board=boardRepository.findById(id)
+                .orElseThrow(()->new NotFoundException("Board not found"));
+        List<Workflow>workflows=workflowRepository.findByBoard_BoardId(id);
+        return workflows.stream()
+                .map(w -> BoardWorkflowDTO.builder()
+                        .workflow_name(w.getWorkflowName())
+                        .issue(w.getIssueType())
+                        .createdAt(w.getCreatedAt())
+                        .build()
+                )
+                .toList();
 
 
 
     }
+
 }
