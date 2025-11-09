@@ -161,6 +161,17 @@ public class WorkflowService {
         return statusResponse;
 
     }
-
+ public void deleteStatus(UUID workflow_id,UUID status_id)
+ {
+     Workflow workflow=workflowRepository.findById(workflow_id)
+             .orElseThrow(()->new NotFoundException("Workflow does not exists"));
+     WorkflowStatus workflowStatus=workflowStatusRepository.findById(status_id)
+             .orElseThrow(()->new NotFoundException("No status with id "+status_id));
+     if(!workflowStatusRepository.existsByWorkflow_WorkflowIdAndStatusId(workflow_id,status_id))
+     {
+         throw new BadRequestException("No status id with this particular workflow id");
+     }
+     workflowStatusRepository.delete(workflowStatus);
+ }
 
 }
