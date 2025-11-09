@@ -146,7 +146,7 @@ public class WorkflowService {
                 .statusName(request.getStatus_name())
                 .workflow(workflow)
                 .build();
-        wo
+        w
 
     }
 
