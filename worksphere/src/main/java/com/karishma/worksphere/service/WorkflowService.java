@@ -15,6 +15,7 @@ import com.karishma.worksphere.model.entity.*;
 import com.karishma.worksphere.repository.AuthRepository;
 import com.karishma.worksphere.repository.BoardRepository;
 import com.karishma.worksphere.repository.WorkflowRepository;
+import com.karishma.worksphere.repository.WorkflowStatusRepository;
 import com.karishma.worksphere.security.annotation.BoardIdParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -29,6 +30,7 @@ import java.util.UUID;
 public class WorkflowService {
     private final WorkflowRepository workflowRepository;
     private final AuthRepository authRepository;
+    private final WorkflowStatusRepository workflowStatusRepository;
     private final BoardRepository boardRepository;
     public WorkflowResponse createWorkflow( UUID id, WorkflowRequestDTO request)
     {
@@ -142,11 +144,21 @@ public class WorkflowService {
     {
         Workflow workflow=workflowRepository.findById(id)
                 .orElseThrow(()->new NotFoundException("Workflow does not exist with this id"));
+        if (workflowStatusRepository.existsByWorkflow_WorkflowIdAndStatusName(
+                id, request.getStatus_name())) {
+            throw new BadRequestException("Status name already exists in this workflow");
+        }
+
         WorkflowStatus workflowStatus=WorkflowStatus.builder()
                 .statusName(request.getStatus_name())
                 .workflow(workflow)
                 .build();
-        w
+        workflowStatusRepository.save(workflowStatus);
+        StatusResponse statusResponse=StatusResponse.builder()
+                .status_name(workflowStatus.getStatusName())
+                .id(workflowStatus.getStatus_id())
+                .build();
+        return statusResponse;
 
     }
 
