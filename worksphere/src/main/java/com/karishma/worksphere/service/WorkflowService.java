@@ -36,7 +36,7 @@ public class WorkflowService {
                 .issueType(request.getIssue())
                 .board(board)
                 .build();
-        
+
 
 
     }
