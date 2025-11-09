@@ -1,5 +1,6 @@
 package com.karishma.worksphere.model.entity;
 
+import com.karishma.worksphere.model.enums.IssueType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +10,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 @Entity
 
