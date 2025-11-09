@@ -46,5 +46,9 @@ public class WorkflowController {
         WorkflowUpdateResponse response= workflowService.updateWorkflow(workflow_id,request);
              return ResponseEntity.ok(response);
     }
-
+   @DeleteMapping("/{workflow_id}")
+    public ResponseEntity<?> deleteWorkflow(@PathVariable UUID workflow_id)
+   {
+       workflowService.deleteWorkflow(workflow_id);
+   }
 }
