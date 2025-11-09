@@ -1,8 +1,10 @@
 package com.karishma.worksphere.controller;
 
 import com.karishma.worksphere.model.dto.request.WorkflowRequestDTO;
+import com.karishma.worksphere.model.dto.request.WorkflowUpdateDTO;
 import com.karishma.worksphere.model.dto.response.BoardWorkflowDTO;
 import com.karishma.worksphere.model.dto.response.WorkflowResponse;
+import com.karishma.worksphere.model.dto.response.WorkflowUpdateResponse;
 import com.karishma.worksphere.security.annotation.AllowOnlyProjAdmin;
 import com.karishma.worksphere.security.annotation.BoardIdParam;
 import com.karishma.worksphere.service.WorkflowService;
@@ -35,4 +37,14 @@ public class WorkflowController {
         return ResponseEntity.ok(response);
     }
     //
+    @AllowOnlyProjAdmin
+    @PutMapping("/{workflow_id}")
+    public ResponseEntity<WorkflowUpdateResponse> updateWorkflow(@PathVariable UUID workflow_id,
+                                                           @RequestBody WorkflowUpdateDTO request)
+
+    {
+        WorkflowUpdateResponse response= workflowService.updateWorkflow(workflow_id,request);
+             return ResponseEntity.ok(response);
+    }
+
 }

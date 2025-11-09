@@ -1,10 +1,14 @@
 package com.karishma.worksphere.service;
 
+import com.karishma.worksphere.exception.AccessNotGivenException;
 import com.karishma.worksphere.exception.AuthenticationException;
+import com.karishma.worksphere.exception.BadRequestException;
 import com.karishma.worksphere.exception.NotFoundException;
 import com.karishma.worksphere.model.dto.request.WorkflowRequestDTO;
+import com.karishma.worksphere.model.dto.request.WorkflowUpdateDTO;
 import com.karishma.worksphere.model.dto.response.BoardWorkflowDTO;
 import com.karishma.worksphere.model.dto.response.WorkflowResponse;
+import com.karishma.worksphere.model.dto.response.WorkflowUpdateResponse;
 import com.karishma.worksphere.model.entity.Auth;
 import com.karishma.worksphere.model.entity.Board;
 import com.karishma.worksphere.model.entity.User;
@@ -68,5 +72,59 @@ public class WorkflowService {
 
 
     }
+    public WorkflowUpdateResponse updateWorkflow(UUID id, WorkflowUpdateDTO request) {
+
+        if (request.getWorkflow_name() == null && request.getIsDefault() == null) {
+            throw new BadRequestException("At least one field must be provided for update");
+        }
+
+        Workflow workflow = workflowRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("No such workflow exists"));
+
+        if (request.getWorkflow_name() != null &&
+                !request.getWorkflow_name().equals(workflow.getWorkflowName())) {
+
+            if (workflowRepository.existsByBoardIdAndWorkflowName(
+                    workflow.getBoard().getBoard_id(), request.getWorkflow_name())) {
+                throw new BadRequestException("Workflow name already exists in this board");
+            }
+
+            workflow.setWorkflowName(request.getWorkflow_name());
+        }
+
+        if (request.getIsDefault() != null) {
+
+            if (request.getIsDefault() && !workflow.isDefault()) {
+                workflowRepository.findByBoardIdAndIsDefaultTrue(workflow.getBoard().getBoard_id())
+                        .ifPresent(existingDefault -> {
+                            existingDefault.setDefault(false);
+                            workflowRepository.save(existingDefault);
+                        });
+
+                workflow.setDefault(true);
+            }
+
+            else if (!request.getIsDefault() && workflow.isDefault()) {
+
+                long totalWorkflows = workflowRepository.countByBoardId(workflow.getBoard().getBoard_id());
+
+                if (totalWorkflows <= 1) {
+                    throw new BadRequestException(
+                            "Cannot unset default. This is the only workflow in the board");
+                }
+
+                workflow.setDefault(false);
+            }
+        }
+
+        workflowRepository.save(workflow);
+
+        WorkflowUpdateResponse response=WorkflowUpdateResponse.builder()
+                .workflow_name(workflow.getWorkflowName())
+                .isDefault(workflow.isDefault())
+                .build();
+        return response;
+    }
+
 
 }
