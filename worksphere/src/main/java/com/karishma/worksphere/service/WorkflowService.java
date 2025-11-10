@@ -210,6 +210,19 @@ public class WorkflowService {
 
         return response;
     }
+    public void deleteTransition(UUID workflow_id , UUID transition_id)
+    {
+        Workflow workflow = workflowRepository.findById(workflow_id)
+                .orElseThrow(()->new BadRequestException("No such workflow id exists"));
+        WorkflowTransition workflowTransition = workflowTransitionRepository.findById(transition_id)
+                .orElseThrow(()->new BadRequestException("No transition exists with transition id "+transition_id));
+        if(!workflowTransition.getWorkflow().getWorkflowId().equals(workflow.getWorkflowId()))
+        {
+            throw new BadRequestException("No transition with id "+transition_id+" exists in the workflow with id "+workflow_id);
+
+        }
+        workflowTransitionRepository.delete(workflowTransition);
+    }
 
 
 }
