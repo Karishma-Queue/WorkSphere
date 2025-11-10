@@ -5,6 +5,7 @@ import com.karishma.worksphere.exception.AuthenticationException;
 import com.karishma.worksphere.exception.BadRequestException;
 import com.karishma.worksphere.exception.NotFoundException;
 import com.karishma.worksphere.model.dto.request.AddStatusDTO;
+import com.karishma.worksphere.model.dto.request.TransitionRequest;
 import com.karishma.worksphere.model.dto.request.WorkflowRequestDTO;
 import com.karishma.worksphere.model.dto.request.WorkflowUpdateDTO;
 import com.karishma.worksphere.model.dto.response.BoardWorkflowDTO;
@@ -30,6 +31,7 @@ import java.util.UUID;
 public class WorkflowService {
     private final WorkflowRepository workflowRepository;
     private final AuthRepository authRepository;
+    private final WorkflowTransitionR
     private final WorkflowStatusRepository workflowStatusRepository;
     private final BoardRepository boardRepository;
     public WorkflowResponse createWorkflow( UUID id, WorkflowRequestDTO request)
@@ -173,5 +175,23 @@ public class WorkflowService {
      }
      workflowStatusRepository.delete(workflowStatus);
  }
+ public void addTransition(UUID id, TransitionRequest request)
+ {
+     Workflow workflow=workflowRepository.findById(id)
+             .orElseThrow(()->new NotFoundException("Workflow with id "+id+"does not exists"));
+     WorkflowStatus workflowStatus=workflowStatusRepository.findByWorkflow_WorkflowIdAndStatus_StatusId(id,request.getFrom_status_id())
+             .orElseThrow(()->new NotFoundException("No status with this id exists in workflow"));
+     WorkflowStatus workflowStatus1=workflowStatusRepository.findByWorkflow_WorkflowIdAndStatus_StatusId(id,request.getTo_status_id())
+             .orElseThrow(()->new NotFoundException("No status with this id exists in workflow"));
+     WorkflowTransition workflowTransition=WorkflowTransition.builder()
+             .fromStatus(workflowStatus)
+             .toStatus(workflowStatus1)
+             .allowedRoles(request.getAllowedRoles())
+             .workflow(workflow)
+             .build();
+     wo
+
+ }
+
 
 }

@@ -1,6 +1,7 @@
 package com.karishma.worksphere.controller;
 
 import com.karishma.worksphere.model.dto.request.AddStatusDTO;
+import com.karishma.worksphere.model.dto.request.TransitionRequest;
 import com.karishma.worksphere.model.dto.request.WorkflowRequestDTO;
 import com.karishma.worksphere.model.dto.request.WorkflowUpdateDTO;
 import com.karishma.worksphere.model.dto.response.*;
@@ -64,7 +65,8 @@ public class WorkflowController {
    }
    @PostMapping("{/{workflow_id}/transitions")
     public TransitionResponse addTransition(@PathVariable UUID workflow_id,@RequestBody TransitionRequest request)
-   {
 
+   {
+       return workflowService.addTransition(workflow_id,request);
    }
 }
