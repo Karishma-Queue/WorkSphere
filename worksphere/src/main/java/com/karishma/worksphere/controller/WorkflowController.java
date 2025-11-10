@@ -63,10 +63,16 @@ public class WorkflowController {
        workflowService.deleteStatus(workflow_id,status_id);
        return ResponseEntity.ok("Deleted successfully status with id "+status_id);
    }
-   @PostMapping("{/{workflow_id}/transitions")
+   @PostMapping("/{workflow_id}/transitions")
     public TransitionResponse addTransition(@PathVariable UUID workflow_id,@RequestBody TransitionRequest request)
 
    {
        return workflowService.addTransition(workflow_id,request);
+   }
+   @DeleteMapping("/{workflow_id}/transitions/{transition_id}")
+    public ResponseEntity<String> removeTransition(@PathVariable UUID workflow_id,@PathVariable UUID transition_id)
+   {
+       workflowService.deleteTransition(workflow_id,transition_id);
+       return ResponseEntity.ok("Deleted successfully");
    }
 }
