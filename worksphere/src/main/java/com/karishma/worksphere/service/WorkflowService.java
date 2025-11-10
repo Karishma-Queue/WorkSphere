@@ -8,15 +8,9 @@ import com.karishma.worksphere.model.dto.request.AddStatusDTO;
 import com.karishma.worksphere.model.dto.request.TransitionRequest;
 import com.karishma.worksphere.model.dto.request.WorkflowRequestDTO;
 import com.karishma.worksphere.model.dto.request.WorkflowUpdateDTO;
-import com.karishma.worksphere.model.dto.response.BoardWorkflowDTO;
-import com.karishma.worksphere.model.dto.response.StatusResponse;
-import com.karishma.worksphere.model.dto.response.WorkflowResponse;
-import com.karishma.worksphere.model.dto.response.WorkflowUpdateResponse;
+import com.karishma.worksphere.model.dto.response.*;
 import com.karishma.worksphere.model.entity.*;
-import com.karishma.worksphere.repository.AuthRepository;
-import com.karishma.worksphere.repository.BoardRepository;
-import com.karishma.worksphere.repository.WorkflowRepository;
-import com.karishma.worksphere.repository.WorkflowStatusRepository;
+import com.karishma.worksphere.repository.*;
 import com.karishma.worksphere.security.annotation.BoardIdParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -31,7 +25,7 @@ import java.util.UUID;
 public class WorkflowService {
     private final WorkflowRepository workflowRepository;
     private final AuthRepository authRepository;
-    private final WorkflowTransitionR
+    private final WorkflowTransitionRepository workflowTransitionRepository;
     private final WorkflowStatusRepository workflowStatusRepository;
     private final BoardRepository boardRepository;
     public WorkflowResponse createWorkflow( UUID id, WorkflowRequestDTO request)
@@ -175,23 +169,46 @@ public class WorkflowService {
      }
      workflowStatusRepository.delete(workflowStatus);
  }
- public void addTransition(UUID id, TransitionRequest request)
- {
-     Workflow workflow=workflowRepository.findById(id)
-             .orElseThrow(()->new NotFoundException("Workflow with id "+id+"does not exists"));
-     WorkflowStatus workflowStatus=workflowStatusRepository.findByWorkflow_WorkflowIdAndStatus_StatusId(id,request.getFrom_status_id())
-             .orElseThrow(()->new NotFoundException("No status with this id exists in workflow"));
-     WorkflowStatus workflowStatus1=workflowStatusRepository.findByWorkflow_WorkflowIdAndStatus_StatusId(id,request.getTo_status_id())
-             .orElseThrow(()->new NotFoundException("No status with this id exists in workflow"));
-     WorkflowTransition workflowTransition=WorkflowTransition.builder()
-             .fromStatus(workflowStatus)
-             .toStatus(workflowStatus1)
-             .allowedRoles(request.getAllowedRoles())
-             .workflow(workflow)
-             .build();
-     wo
+    public TransitionResponse addTransition(UUID id, TransitionRequest request)
+    {
+        Workflow workflow = workflowRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Workflow with id " + id + " does not exist"));
 
- }
+        WorkflowStatus fromStatus = workflowStatusRepository.findById(request.getFrom_status_id())
+                .orElseThrow(() -> new NotFoundException("From status with id " + request.getFrom_status_id() + " does not exist"));
 
+        WorkflowStatus toStatus = workflowStatusRepository.findById(request.getTo_status_id())
+                .orElseThrow(() -> new NotFoundException("To status with id " + request.getTo_status_id() + " does not exist"));
+
+        if (!fromStatus.getWorkflow().getWorkflowId().equals(id)) {
+            throw new BadRequestException("From status does not belong to this workflow");
+        }
+
+        if (!toStatus.getWorkflow().getWorkflowId().equals(id)) {
+            throw new BadRequestException("To status does not belong to this workflow");
+        }
+
+        if (workflowTransitionRepository.existsByWorkflow_WorkflowIdAndFromStatus_StatusIdAndToStatus_StatusId(
+                id, request.getFrom_status_id(), request.getTo_status_id())) {
+            throw new BadRequestException("Transition already exists between these statuses");
+        }
+
+        WorkflowTransition workflowTransition = WorkflowTransition.builder()
+                .fromStatus(fromStatus)
+                .toStatus(toStatus)
+                .allowedRoles(request.getAllowedRoles())
+                .workflow(workflow)
+                .build();
+
+        workflowTransitionRepository.save(workflowTransition);
+
+        TransitionResponse response = TransitionResponse.builder()
+                .from_status(fromStatus.getStatusName())
+                .to_status(toStatus.getStatusName())
+                .workflow_id(workflow.getWorkflowId())
+                .build();
+
+        return response;
+    }
 
 }
