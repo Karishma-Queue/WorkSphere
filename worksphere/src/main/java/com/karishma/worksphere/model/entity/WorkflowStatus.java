@@ -22,4 +22,11 @@ public class WorkflowStatus {
     Workflow workflow;
     @Column(name = "status_name", nullable = false)
     private String statusName;
+    @Column(name = "started", nullable = false)
+    private Boolean started = false;
+    @Column(name = "ended", nullable = false)
+    private Boolean ended = false;
+    @Column(name = "is_initial", nullable = false)
+    @Builder.Default
+    private Boolean isInitial=false;
 }

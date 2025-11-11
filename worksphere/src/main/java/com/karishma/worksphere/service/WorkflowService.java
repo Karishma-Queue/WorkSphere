@@ -144,10 +144,15 @@ public class WorkflowService {
                 id, request.getStatus_name())) {
             throw new BadRequestException("Status name already exists in this workflow");
         }
-
+        boolean started = request.getStarted() != null ? request.getStarted() : false;
+        boolean ended = request.getEnded() != null ? request.getEnded() : false;
+       boolean isInitial= request.getIs_initial()!=null? request.getIs_initial() : false;
         WorkflowStatus workflowStatus=WorkflowStatus.builder()
                 .statusName(request.getStatus_name())
                 .workflow(workflow)
+                .started(started)
+                .ended(ended)
+                .isInitial(isInitial)
                 .build();
         workflowStatusRepository.save(workflowStatus);
         StatusResponse statusResponse=StatusResponse.builder()
