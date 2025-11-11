@@ -10,4 +10,5 @@ public interface WorkflowStatusRepository extends JpaRepository<WorkflowStatus, 
     boolean existsByWorkflow_WorkflowIdAndStatusName(UUID workflowId, String statusName);
    boolean existsByWorkflow_WorkflowIdAndStatusId(UUID id1,UUID id2);
    Optional<WorkflowStatus> findByWorkflow_WorkflowIdAndStatus_StatusId(UUID id1, UUID id2);
+   Optional<WorkflowStatus> findByWorkflow_WorkflowIdAndIsInitialTrue(UUID id);
 }

@@ -16,6 +16,6 @@ public interface BoardMemberRepository extends JpaRepository<BoardMember, UUID> 
  BoardMember findByBoardAndBoardMember(Board board,BoardMember boardMember);
  List<BoardMember> findByBoardId(UUID id);
     Optional<BoardMember> findByBoard_BoardIdAndBoardRole(UUID boardId, BoardRole boardRole);
-
+   Optional<BoardMember> findByBoard_BoardIdAndBoardMemberId(UUID board_id,UUID id);
 
 }
