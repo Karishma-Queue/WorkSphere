@@ -61,9 +61,10 @@ public class AllowOnlyProjAdminAspect {
 
             // If workflow_id found, fetch board_id from workflow
             if (workflowId != null) {
-                Workflow workflow = workflowRepository.findById(workflowId)
-                        .orElseThrow(() -> new RuntimeException("Workflow not found with id: " + workflowId));
-                boardId = workflow.getBoard().getBoardId();
+                final UUID finalWorkflowId = workflowId;
+                Workflow workflow = workflowRepository.findById(finalWorkflowId)
+                        .orElseThrow(() -> new RuntimeException("Workflow not found with id: " + finalWorkflowId));
+                boardId = workflow.getBoard().getBoard_id();
             }
         }
 
