@@ -15,4 +15,7 @@ public interface WorkflowRepository extends JpaRepository<Workflow, UUID> {
     long countByBoard_BoardId(UUID boardId);
    Workflow findByBoard_BoardIdAndIssueType(UUID id, IssueType issueType);
    Optional<Workflow> findByBoard_BoardIdAndIsDefaultTrue(UUID id);
+
+
+
 }
