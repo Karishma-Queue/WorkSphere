@@ -12,6 +12,7 @@ import com.karishma.worksphere.repository.WorkflowRepository;
 import com.karishma.worksphere.security.annotation.BoardIdParam;
 import com.karishma.worksphere.security.annotation.WorkflowIdParam;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -21,10 +22,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Parameter;
-import java.util.UUID;
 
 @Aspect
+
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class AllowOnlyProjAdminAspect {
     private final AuthRepository authRepository;
@@ -39,32 +41,36 @@ public class AllowOnlyProjAdminAspect {
         MethodSignature methodSig = (MethodSignature) joinPoint.getSignature();
         Parameter[] parameters = methodSig.getMethod().getParameters();
 
-        UUID boardId = null;
-        UUID workflowId = null;
+        String boardId = null;
+        String workflowId = null;
 
         // First, check for direct board_id parameter
         for (int i = 0; i < parameters.length; i++) {
             if (parameters[i].isAnnotationPresent(BoardIdParam.class)) {
-                boardId = (UUID) args[i];
+                boardId = (String) args[i];
                 break;
             }
         }
+        System.out.println("---- DEBUG START ----");
+   //TODO logged.info for error
+        System.out.println("BoardId being checked: " + boardId);
+
 
         // If no board_id found, check for workflow_id parameter
         if (boardId == null) {
             for (int i = 0; i < parameters.length; i++) {
                 if (parameters[i].isAnnotationPresent(WorkflowIdParam.class)) {
-                    workflowId = (UUID) args[i];
+                    workflowId = (String) args[i];
                     break;
                 }
             }
 
             // If workflow_id found, fetch board_id from workflow
             if (workflowId != null) {
-                final UUID finalWorkflowId = workflowId;
+                final String finalWorkflowId = workflowId;
                 Workflow workflow = workflowRepository.findById(finalWorkflowId)
                         .orElseThrow(() -> new RuntimeException("Workflow not found with id: " + finalWorkflowId));
-                boardId = workflow.getBoard().getBoard_id();
+                boardId = workflow.getBoard().getBoardId();
             }
         }
 
@@ -79,24 +85,40 @@ public class AllowOnlyProjAdminAspect {
         }
     }
 
-    private boolean checkCurrentUserIsAdmin(UUID boardId) {
+    private boolean checkCurrentUserIsAdmin(String boardId) {
         Authentication optional = SecurityContextHolder.getContext().getAuthentication();
         if (optional == null || !optional.isAuthenticated()) {
             throw new AuthenticationException("User not authenticated");
         }
+        System.out.println("Logged-in email: " +optional.getName());
+
 
         Auth auth = authRepository.findByEmail(optional.getName())
                 .orElseThrow(() -> new AuthenticationException("Authentication failed"));
         User user = auth.getUser();
+        if (auth == null) {
+            System.out.println("Auth NOT found in DB!");
+        } else {
+            System.out.println("Logged-in userId: " + auth.getUser().getUserId());
+        }
+
 
         BoardMember boardMember = boardMemberRepository
                 .findByBoard_BoardIdAndBoardRole(boardId, BoardRole.PROJECT_ADMIN)
                 .orElse(null);
-
         if (boardMember == null) {
+            System.out.println("NO Project Admin found for this board!");
+        } else {
+            System.out.println("Board admin userId in DB: " + boardMember.getUser().getUserId());
+            System.out.println("Board admin role: " + boardMember.getBoardRole());
+        }
+
+            if (boardMember == null) {
             return false;
         }
 
-        return user.getUser_id().equals(boardMember.getUser().getUser_id());
+        return user.getUserId().equals(boardMember.getUser().getUserId());
+
+
     }
 }

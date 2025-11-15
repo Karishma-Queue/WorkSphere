@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -18,32 +18,37 @@ import java.util.UUID;
 public class BoardRequest {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
+    private String boardRequestId;
 
-    private UUID board_request_id;
-    @Column(name="board_request_name",nullable = false,unique = true)
-    private String board_request_name;
-    @Column(name="board_request_key",nullable = false,unique=true)
-    private String board_request_key;
+    @Column(name="board_request_name", nullable = false, unique = true)
+    private String boardRequestName;
+
+    @Column(name="board_request_key", nullable = false, unique = true)
+    private String boardRequestKey;
+
     @Column(nullable = false)
     private String description;
 
     private String justification;
+
     @Enumerated(EnumType.STRING)
     @Builder.Default
     @Column(nullable = false)
-    private Status status=Status.PENDING;
+    private Status status = Status.PENDING;
+
     @CreationTimestamp
-    @Column(nullable = false,updatable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime requestedAt;
+
     @ManyToOne
-    @JoinColumn(name="requester_id",nullable = false)
+    @JoinColumn(name="requester_id", nullable = false)
     private User requester;
+
     @ManyToOne
     @JoinColumn(name="reviewer_id")
     private User reviewedBy;
+
     private LocalDateTime rejectedAt;
     private LocalDateTime approvedAt;
-    private String rejection_reason;
-
-
+    private String rejectionReason;
 }

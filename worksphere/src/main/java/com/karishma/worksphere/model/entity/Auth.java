@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
+
 
 @Entity
 @Data
@@ -15,15 +15,17 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Auth {
     @Id
-    @GeneratedValue(strategy=GenerationType.UUID)
-    private UUID auth_id;
-    @Column(nullable=false,unique=true)
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "auth_id")
+    private String authId;
+
+    @Column(nullable = false, unique = true)
     private String email;
-    @Column(nullable=false)
-    private String hashed_pass;
+
+    @Column(name = "hashed_pass", nullable = false)
+    private String hashedPass;
+
     @OneToOne
-    @JoinColumn(name="user_id")
+    @JoinColumn(name = "user_id")
     private User user;
-
-
 }

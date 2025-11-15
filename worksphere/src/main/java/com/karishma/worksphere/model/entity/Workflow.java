@@ -11,9 +11,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
-@Entity
 
+@Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,7 +21,7 @@ public class Workflow {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "workflow_id")
-    private UUID workflowId;
+    private String workflowId;
 
     @Column(name = "workflow_name", nullable = false)
     private String workflowName;
@@ -37,7 +36,7 @@ public class Workflow {
 
     @Column(name = "is_default", nullable = false)
     @Builder.Default
-    private boolean isDefault=false;
+    private boolean isDefault = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by")
@@ -53,4 +52,3 @@ public class Workflow {
     @OneToMany(mappedBy = "workflow", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<WorkflowTransition> transitions = new ArrayList<>();
 }
-

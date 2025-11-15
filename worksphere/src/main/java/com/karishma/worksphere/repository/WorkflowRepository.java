@@ -6,16 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
-public interface WorkflowRepository extends JpaRepository<Workflow, UUID> {
-    List<Workflow> findByBoard_BoardId(UUID id);
-    boolean existsByBoardIdAndWorkflowName(UUID id,String name);
-    Optional<Workflow> findByBoardIdAndIsDefaultTrue(UUID boardId);
-    long countByBoard_BoardId(UUID boardId);
-   Workflow findByBoard_BoardIdAndIssueType(UUID id, IssueType issueType);
-   Optional<Workflow> findByBoard_BoardIdAndIsDefaultTrue(UUID id);
-
-
-
+public interface WorkflowRepository extends JpaRepository<Workflow, String> {
+    List<Workflow> findByBoard_BoardId(String id);
+    boolean existsByBoard_BoardIdAndWorkflowName(String id, String name);
+    long countByBoard_BoardId(String boardId);
+    Workflow findByBoard_BoardIdAndIssueType(String id, IssueType issueType);
+    Optional<Workflow> findByBoard_BoardIdAndIsDefaultTrue(String id);
 }

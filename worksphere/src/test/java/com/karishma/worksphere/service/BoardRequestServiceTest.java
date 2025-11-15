@@ -57,39 +57,39 @@ class BoardRequestServiceTest {
     @BeforeEach
     void setUp() {
         adminUser = User.builder()
-                .user_id(UUID.randomUUID())
-                .user_name("Admin User")
+                .userId(UUID.randomUUID())
+                .userName("Admin User")
                 .role(Role.ADMIN)
-                .job_title("Manager")
+                .jobTitle("Manager")
                 .department("IT")
                 .build();
 
         memberUser = User.builder()
-                .user_id(UUID.randomUUID())
-                .user_name("Member User")
+                .userId(UUID.randomUUID())
+                .userName("Member User")
                 .role(Role.MEMBER)
-                .job_title("Developer")
+                .jobTitle("Developer")
                 .department("Engineering")
                 .build();
 
         adminAuth = Auth.builder()
-                .auth_id(UUID.randomUUID())
+                .authId(UUID.randomUUID())
                 .email("admin@test.com")
-                .hashed_pass("hashed123")
+                .hashedPass("hashed123")
                 .user(adminUser)
                 .build();
 
         memberAuth = Auth.builder()
-                .auth_id(UUID.randomUUID())
+                .authId(UUID.randomUUID())
                 .email("member@test.com")
-                .hashed_pass("hashed123")
+                .hashedPass("hashed123")
                 .user(memberUser)
                 .build();
 
         boardRequest = BoardRequest.builder()
-                .board_request_id(UUID.randomUUID())
-                .board_request_name("Test Board")
-                .board_request_key("TEST1")
+                .boardRequestId(UUID.randomUUID())
+                .boardRequestName("Test Board")
+                .boardRequestKey("TEST1")
                 .description("Test board description")
                 .justification("Need this board")
                 .status(Status.PENDING)
@@ -125,7 +125,7 @@ class BoardRequestServiceTest {
         when(boardRequestRepository.save(any(BoardRequest.class)))
                 .thenAnswer(invocation -> {
                     BoardRequest req = invocation.getArgument(0);
-                    req.setBoard_request_id(UUID.randomUUID()); // ✅ Simulate ID from DB
+                    req.setBoardRequestId(UUID.randomUUID()); // ✅ Simulate ID from DB
                     return req;
                 });
 
@@ -143,14 +143,27 @@ class BoardRequestServiceTest {
     @Test
     void testApproveRequest_Success() {
         mockAuthenticatedUser("admin@test.com", true);
-        when(boardRequestRepository.findById(boardRequest.getBoard_request_id())).thenReturn(Optional.of(boardRequest));
-        when(authRepository.findByEmail("admin@test.com")).thenReturn(Optional.of(adminAuth));
+        when(boardRequestRepository.findById(boardRequest.getBoardRequestId()))
+                .thenReturn(Optional.of(boardRequest));
+        when(authRepository.findByEmail("admin@test.com"))
+                .thenReturn(Optional.of(adminAuth));
 
-        boardRequestService.approveRequest(boardRequest.getBoard_request_id());
+        // Mock board save
+        Board savedBoard = new Board();
+        savedBoard.setBoardId(UUID.randomUUID());
+        when(boardRepository.save(any(Board.class))).thenReturn(savedBoard);
+
+        // Mock boardMember save
+        BoardMember savedMember = new BoardMember();
+        savedMember.setBoardMemberId(UUID.randomUUID());
+        when(boardMemberRepository.save(any(BoardMember.class))).thenReturn(savedMember);
+
+        boardRequestService.approveRequest(boardRequest.getBoardRequestId());
 
         verify(boardRepository, times(1)).save(any(Board.class));
         verify(boardMemberRepository, times(1)).save(any(BoardMember.class));
         verify(boardRequestRepository, times(1)).save(boardRequest);
+
         assertEquals(Status.APPROVED, boardRequest.getStatus());
     }
 
@@ -158,25 +171,25 @@ class BoardRequestServiceTest {
     @Test
     void testApproveRequest_AlreadyProcessed() {
         boardRequest.setStatus(Status.REJECTED);
-        when(boardRequestRepository.findById(boardRequest.getBoard_request_id())).thenReturn(Optional.of(boardRequest));
+        when(boardRequestRepository.findById(boardRequest.getBoardRequestId())).thenReturn(Optional.of(boardRequest));
         assertThrows(BoardRequestException.class, () ->
-                boardRequestService.approveRequest(boardRequest.getBoard_request_id()));
+                boardRequestService.approveRequest(boardRequest.getBoardRequestId()));
     }
 
     // ✅ REJECT REQUEST SUCCESS
     @Test
     void testRejectRequest_Success() {
         mockAuthenticatedUser("admin@test.com", true);
-        when(boardRequestRepository.findById(boardRequest.getBoard_request_id())).thenReturn(Optional.of(boardRequest));
+        when(boardRequestRepository.findById(boardRequest.getBoardRequestId())).thenReturn(Optional.of(boardRequest));
         when(authRepository.findByEmail("admin@test.com")).thenReturn(Optional.of(adminAuth));
 
         RejectRequestDTO rejectDTO = new RejectRequestDTO();
         rejectDTO.setRejection_reason("Invalid data");
 
-        boardRequestService.rejectRequest(boardRequest.getBoard_request_id(), rejectDTO);
+        boardRequestService.rejectRequest(boardRequest.getBoardRequestId(), rejectDTO);
 
         assertEquals(Status.REJECTED, boardRequest.getStatus());
-        assertEquals("Invalid data", boardRequest.getRejection_reason());
+        assertEquals("Invalid data", boardRequest.getRejectionReason());
         verify(boardRequestRepository, times(1)).save(boardRequest);
     }
 
@@ -189,7 +202,7 @@ class BoardRequestServiceTest {
 
         List<BoardRequestResponse> responses = boardRequestService.myAllRequests();
         assertEquals(1, responses.size());
-        assertEquals(boardRequest.getBoard_request_name(), responses.get(0).getName());
+        assertEquals(boardRequest.getBoardRequestName(), responses.get(0).getName());
     }
 
     // ✅ UPDATE REQUEST SUCCESS
@@ -197,15 +210,15 @@ class BoardRequestServiceTest {
     void testUpdateMyRequest_Success() {
         mockAuthenticatedUser("member@test.com", true);
         when(authRepository.findByEmail("member@test.com")).thenReturn(Optional.of(memberAuth));
-        when(boardRequestRepository.findById(boardRequest.getBoard_request_id())).thenReturn(Optional.of(boardRequest));
+        when(boardRequestRepository.findById(boardRequest.getBoardRequestId())).thenReturn(Optional.of(boardRequest));
 
         BoardRequestUpdateDTO updateDTO = new BoardRequestUpdateDTO();
         updateDTO.setBoard_request_name("Updated Name");
 
-        boardRequestService.updateMyRequest(boardRequest.getBoard_request_id(), updateDTO);
+        boardRequestService.updateMyRequest(boardRequest.getBoardRequestId(), updateDTO);
 
         verify(boardRequestRepository, times(1)).save(boardRequest);
-        assertEquals("Updated Name", boardRequest.getBoard_request_name());
+        assertEquals("Updated Name", boardRequest.getBoardRequestName());
     }
 
     // ❌ UPDATE REQUEST NOT OWNER
@@ -213,11 +226,11 @@ class BoardRequestServiceTest {
     void testUpdateMyRequest_NotOwner() {
         mockAuthenticatedUser("admin@test.com", true);
         when(authRepository.findByEmail("admin@test.com")).thenReturn(Optional.of(adminAuth));
-        when(boardRequestRepository.findById(boardRequest.getBoard_request_id())).thenReturn(Optional.of(boardRequest));
+        when(boardRequestRepository.findById(boardRequest.getBoardRequestId())).thenReturn(Optional.of(boardRequest));
 
         BoardRequestUpdateDTO dto = new BoardRequestUpdateDTO();
         assertThrows(AccessNotGivenException.class, () ->
-                boardRequestService.updateMyRequest(boardRequest.getBoard_request_id(), dto));
+                boardRequestService.updateMyRequest(boardRequest.getBoardRequestId(), dto));
     }
 
     // ✅ DELETE REQUEST SUCCESS
@@ -225,9 +238,9 @@ class BoardRequestServiceTest {
     void testDeleteMyRequest_Success() {
         mockAuthenticatedUser("member@test.com", true);
         when(authRepository.findByEmail("member@test.com")).thenReturn(Optional.of(memberAuth));
-        when(boardRequestRepository.findById(boardRequest.getBoard_request_id())).thenReturn(Optional.of(boardRequest));
+        when(boardRequestRepository.findById(boardRequest.getBoardRequestId())).thenReturn(Optional.of(boardRequest));
 
-        boardRequestService.deleteMyRequest(boardRequest.getBoard_request_id());
+        boardRequestService.deleteMyRequest(boardRequest.getBoardRequestId());
         verify(boardRequestRepository, times(1)).delete(boardRequest);
     }
 
@@ -236,10 +249,10 @@ class BoardRequestServiceTest {
     void testDeleteMyRequest_NotOwner() {
         mockAuthenticatedUser("admin@test.com", true);
         when(authRepository.findByEmail("admin@test.com")).thenReturn(Optional.of(adminAuth));
-        when(boardRequestRepository.findById(boardRequest.getBoard_request_id())).thenReturn(Optional.of(boardRequest));
+        when(boardRequestRepository.findById(boardRequest.getBoardRequestId())).thenReturn(Optional.of(boardRequest));
 
         assertThrows(AccessNotGivenException.class, () ->
-                boardRequestService.deleteMyRequest(boardRequest.getBoard_request_id()));
+                boardRequestService.deleteMyRequest(boardRequest.getBoardRequestId()));
     }
 
     // ✅ GET MY REQUEST
@@ -247,10 +260,10 @@ class BoardRequestServiceTest {
     void testGetMyRequest_Success() {
         mockAuthenticatedUser("member@test.com", true);
         when(authRepository.findByEmail("member@test.com")).thenReturn(Optional.of(memberAuth));
-        when(boardRequestRepository.findById(boardRequest.getBoard_request_id())).thenReturn(Optional.of(boardRequest));
+        when(boardRequestRepository.findById(boardRequest.getBoardRequestId())).thenReturn(Optional.of(boardRequest));
 
-        BoardDetailsDTO dto = boardRequestService.getMyRequest(boardRequest.getBoard_request_id());
-        assertEquals(boardRequest.getBoard_request_name(), dto.getBoard_request_name());
+        BoardDetailsDTO dto = boardRequestService.getMyRequest(boardRequest.getBoardRequestId());
+        assertEquals(boardRequest.getBoardRequestName(), dto.getBoard_request_name());
     }
 
     // ✅ ADMIN GET REQUEST BY ID
@@ -258,10 +271,10 @@ class BoardRequestServiceTest {
     void testGetRequestById_Success_Admin() {
         mockAuthenticatedUser("admin@test.com", true);
         when(authRepository.findByEmail("admin@test.com")).thenReturn(Optional.of(adminAuth));
-        when(boardRequestRepository.findById(boardRequest.getBoard_request_id())).thenReturn(Optional.of(boardRequest));
+        when(boardRequestRepository.findById(boardRequest.getBoardRequestId())).thenReturn(Optional.of(boardRequest));
 
-        BoardDetailsDTO dto = boardRequestService.getRequestById(boardRequest.getBoard_request_id());
-        assertEquals(boardRequest.getBoard_request_key(), dto.getBoard_request_key());
+        BoardDetailsDTO dto = boardRequestService.getRequestById(boardRequest.getBoardRequestId());
+        assertEquals(boardRequest.getBoardRequestKey(), dto.getBoard_request_key());
     }
 
     // ❌ NON-ADMIN TRYING TO ACCESS ADMIN METHOD
@@ -271,6 +284,6 @@ class BoardRequestServiceTest {
         when(authRepository.findByEmail("member@test.com")).thenReturn(Optional.of(memberAuth));
 
         assertThrows(AccessNotGivenException.class, () ->
-                boardRequestService.getRequestById(boardRequest.getBoard_request_id()));
+                boardRequestService.getRequestById(boardRequest.getBoardRequestId()));
     }
 }

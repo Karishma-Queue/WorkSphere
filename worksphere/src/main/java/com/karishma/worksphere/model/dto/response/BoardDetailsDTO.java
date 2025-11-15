@@ -8,13 +8,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @Data
 public class BoardDetailsDTO {
-    private UUID board_request_id;
+    private String board_request_id;
     private String board_request_name;
     private String board_request_key;
     private String description;

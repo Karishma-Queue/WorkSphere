@@ -23,7 +23,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -70,17 +69,17 @@ public class AuthServiceTest {
         loginRequest.setEmail("test@example.com");
         loginRequest.setPassword("password123");
         user = User.builder()
-                .user_id(UUID.randomUUID())
-                .user_name("Test User")
+                .userId(.randomUUID())
+                .userName("Test User")
                 .department("Engineering")
-                .job_title("Developer")
+                .jobTitle("Developer")
                 .role(Role.MEMBER)
-                .profile_picture_url("https://fake.cloudinary.com/test.jpg")
+                .profilePictureUrl("https://fake.cloudinary.com/test.jpg")
                 .build();
         auth = Auth.builder()
-                .auth_id(UUID.randomUUID())
+                .authId(UUID.randomUUID())
                 .email("test@example.com")
-                .hashed_pass("hashedPassword123")
+                .hashedPass("hashedPassword123")
                 .user(user)
                 .build();
 

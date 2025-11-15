@@ -9,8 +9,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
-
 
 @Entity
 @Data
@@ -20,20 +18,28 @@ import java.util.UUID;
 public class Board {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID board_id;
-    @Column(nullable = false)
-    private String board_name;
-    @Column(nullable=false)
-    private String board_key;
+    @Column(name = "board_id")
+    private String boardId;
+
+    @Column(name = "board_name", nullable = false)
+    private String boardName;
+
+    @Column(name = "board_key", nullable = false)
+    private String boardKey;
+
     @Column(nullable = false)
     private String description;
-    @Enumerated(EnumType.STRING)
-    @Builder.Default
-    private BoardStatus boardStatus= BoardStatus.ACTIVE;
-    @CreationTimestamp
-    private LocalDateTime createdAt;
-    @ManyToOne
-    @JoinColumn(name="created_by",nullable = false)
-    private User createdBy;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "board_status")
+    @Builder.Default
+    private BoardStatus boardStatus = BoardStatus.ACTIVE;
+
+    @CreationTimestamp
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "created_by", nullable = false)
+    private User createdBy;
 }

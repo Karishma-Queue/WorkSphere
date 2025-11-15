@@ -7,15 +7,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class AllBoardMemberDTO {
-    private UUID board_member_id;
+    private String board_member_id;
     private String user_name;
-    private UUID user_id;
+    private String user_id;
     private BoardRole boardRole;
     private LocalDateTime joinedAt;
 }

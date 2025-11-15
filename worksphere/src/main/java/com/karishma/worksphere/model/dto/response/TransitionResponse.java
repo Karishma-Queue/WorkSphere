@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
 
 @Data
 @AllArgsConstructor
@@ -14,5 +13,5 @@ import java.util.UUID;
 public class TransitionResponse {
     private String from_status;
     private String to_status;
-    private UUID workflow_id;
+    private String workflow_id;
 }

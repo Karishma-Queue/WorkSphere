@@ -6,10 +6,9 @@ import com.karishma.worksphere.model.enums.Status;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
-public interface BoardRequestRepository extends JpaRepository <BoardRequest, UUID> {
+
+public interface BoardRequestRepository extends JpaRepository<BoardRequest, String> {
     List<BoardRequest> findByRequester(User user);
     List<BoardRequest> findByRequesterAndStatus(User user, Status status);
     List<BoardRequest> findByStatus(Status status);

@@ -12,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/boards/{boardId}/issues")
@@ -24,7 +23,7 @@ public class IssueController {
     @AllowOnlyProjAdmin
     @PostMapping
     public ResponseEntity<IssueResponse> createIssue(
-            @PathVariable @BoardIdParam UUID boardId,
+            @PathVariable @BoardIdParam String boardId,
             @RequestBody CreateIssueDTO request) {
         IssueResponse response = issueService.createIssue(boardId, request);
         return ResponseEntity.ok(response);
@@ -33,7 +32,7 @@ public class IssueController {
     @AllowOnlyProjAdmin
     @GetMapping
     public ResponseEntity<List<IssueResponse>> getAllIssues(
-            @PathVariable @BoardIdParam UUID boardId) {
+            @PathVariable @BoardIdParam String boardId) {
         List<IssueResponse> responses = issueService.getAllIssues(boardId);
         return ResponseEntity.ok(responses);
     }
@@ -41,8 +40,8 @@ public class IssueController {
     @AllowOnlyProjAdmin
     @GetMapping("/{issueId}")
     public ResponseEntity<IssueResponse> getIssueById(
-            @PathVariable UUID boardId,
-            @PathVariable @IssueIdParam UUID issueId) {
+            @PathVariable String boardId,
+            @PathVariable @IssueIdParam String issueId) {
         IssueResponse response = issueService.getIssueById(boardId, issueId);
         return ResponseEntity.ok(response);
     }
@@ -50,8 +49,8 @@ public class IssueController {
     @AllowOnlyProjAdmin
     @PutMapping("/{issueId}")
     public ResponseEntity<IssueResponse> updateIssue(
-            @PathVariable UUID boardId,
-            @PathVariable @IssueIdParam UUID issueId,
+            @PathVariable String boardId,
+            @PathVariable @IssueIdParam String issueId,
             @RequestBody UpdateIssueDTO request) {
         IssueResponse response = issueService.updateIssue(boardId, issueId, request);
         return ResponseEntity.ok(response);
@@ -60,17 +59,17 @@ public class IssueController {
     @AllowOnlyProjAdmin
     @DeleteMapping("/{issueId}")
     public ResponseEntity<Void> deleteIssue(
-            @PathVariable UUID boardId,
-            @PathVariable @IssueIdParam UUID issueId) {
+            @PathVariable String boardId,
+            @PathVariable @IssueIdParam String issueId) {
         issueService.deleteIssue(boardId, issueId);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{issueId}/status/{statusId}")
     public ResponseEntity<IssueResponse> changeStatus(
-            @PathVariable UUID boardId,
-            @PathVariable @IssueIdParam UUID issueId,
-            @PathVariable UUID statusId) {
+            @PathVariable String boardId,
+            @PathVariable @IssueIdParam String issueId,
+            @PathVariable String statusId) {
         IssueResponse response = issueService.changeIssueStatus(boardId, issueId, statusId);
         return ResponseEntity.ok(response);
     }

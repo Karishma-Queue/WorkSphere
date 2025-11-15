@@ -9,14 +9,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class AddBoardMemberResponseDTO {
-    private UUID board_member_id;
+    private String board_member_id;
     private Board board;
     private User user;
     private BoardRole boardRole;

@@ -23,7 +23,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -40,21 +39,21 @@ public class BoardRequestService {
                 .orElseThrow(() -> new AuthenticationException("Authentication not found"));
 
         BoardRequest boardRequest = BoardRequest.builder()
-                .board_request_name(request.getBoard_request_name())
-                .board_request_key(request.getBoard_request_key())
+                .boardRequestName(request.getBoard_request_name())
+                .boardRequestKey(request.getBoard_request_key())
                 .requester(auth.getUser())
                 .description(request.getDescription())
                 .justification(request.getJustification())
                 .build();
-
+       System.out.println("In board request requester is "+boardRequest.getRequester().getUserName());
         boardRequestRepository.save(boardRequest);
 
         return ResponseEntity
                 .status(201)
                 .body(Map.of(
                         "message", "Board created successfully",
-                        "boardName", boardRequest.getBoard_request_name(),
-                        "boardId", boardRequest.getBoard_request_id(),
+                        "boardName", boardRequest.getBoardRequestName(),
+                        "boardId", boardRequest.getBoardRequestId(),
                         "requestedBy", auth.getEmail()
                 ));
     }
@@ -64,7 +63,7 @@ public class BoardRequestService {
     }
 
 
-    public void approveRequest( UUID id) {
+    public void approveRequest( String id) {
         BoardRequest boardRequest = boardRequestRepository.findById(id)
                 .orElseThrow(() -> new BoardRequestException("Board request not found with id: " + id));
 
@@ -74,29 +73,50 @@ public class BoardRequestService {
 
         User admin = authUser(new AuthenticationException("User not authenticated") {
         });
+        System.out.println("=== APPROVE REQUEST DEBUG ===");
+        System.out.println("Requester: " + boardRequest.getRequester());
+        System.out.println("Requester userId: " + boardRequest.getRequester().getUserId());
+        System.out.println("Requester userName: " + boardRequest.getRequester().getUserName());
 
         Board board = Board.builder()
-                .board_name(boardRequest.getBoard_request_name())
-                .board_key(boardRequest.getBoard_request_key())
+                .boardName(boardRequest.getBoardRequestName())
+                .boardKey(boardRequest.getBoardRequestKey())
                 .description(boardRequest.getDescription())
                 .createdBy(boardRequest.getRequester())
                 .build();
         boardRepository.save(board);
+
+        System.out.println("Board saved with ID: " + board.getBoardId());
+        System.out.println("Board createdBy: " + board.getCreatedBy().getUserId());
 
         BoardMember boardMember = BoardMember.builder()
                 .board(board)
                 .user(board.getCreatedBy())
                 .boardRole(BoardRole.PROJECT_ADMIN)
                 .build();
-        boardMemberRepository.save(boardMember);
+        System.out.println("About to save BoardMember...");
+        System.out.println("  - Board ID: " + boardMember.getBoard().getBoardId());
+        System.out.println("  - User ID: " + boardMember.getUser().getUserId());
+        System.out.println("  - Role: " + boardMember.getBoardRole());
+
+        try {
+            BoardMember saved = boardMemberRepository.save(boardMember);
+            System.out.println("✅ BoardMember SAVED successfully! ID: " + saved.getBoardMemberId());
+        } catch (Exception e) {
+            System.out.println("❌ ERROR saving BoardMember: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
+
 
         boardRequest.setStatus(Status.APPROVED);
         boardRequest.setApprovedAt(LocalDateTime.now());
         boardRequest.setReviewedBy(admin);
+        System.out.println("Reviewed by "+admin.getUserName());
         boardRequestRepository.save(boardRequest);
     }
 
-    public void rejectRequest(UUID id, RejectRequestDTO request) {
+    public void rejectRequest(String id, RejectRequestDTO request) {
         BoardRequest boardRequest = boardRequestRepository.findById(id)
                 .orElseThrow(() -> new BoardRequestException("Board request not found with id: " + id));
 
@@ -112,9 +132,11 @@ public class BoardRequestService {
         boardRequest.setStatus(Status.REJECTED);
 
         if (request != null && request.getRejection_reason() != null) {
-            boardRequest.setRejection_reason(request.getRejection_reason());
+            boardRequest.setRejectionReason(request.getRejection_reason());
         }
         boardRequestRepository.save(boardRequest);
+        System.out.println("=== APPROVE REQUEST COMPLETED ===");
+
 
     }
 
@@ -140,8 +162,8 @@ public class BoardRequestService {
 
     private BoardRequestResponse mapToDTO(BoardRequest entity) {
         BoardRequestResponse dto = new BoardRequestResponse();
-        dto.setId(entity.getBoard_request_id());
-        dto.setName(entity.getBoard_request_name());
+        dto.setId(entity.getBoardRequestId());
+        dto.setName(entity.getBoardRequestName());
         dto.setRequesterName(entity.getRequester());
         return dto;
     }
@@ -155,7 +177,7 @@ public class BoardRequestService {
 
     }
     @Transactional
-    public void updateMyRequest(UUID id, BoardRequestUpdateDTO request) {
+    public void updateMyRequest(String id, BoardRequestUpdateDTO request) {
         User proj_admin = authUser(new AuthenticationException("User not authenticated"));
 
         BoardRequest boardRequest = boardRequestRepository.findById(id)
@@ -171,13 +193,13 @@ public class BoardRequestService {
         }
 
         if (request.getBoard_request_name() != null && !request.getBoard_request_name().isBlank()) {
-            boardRequest.setBoard_request_name(request.getBoard_request_name());
+            boardRequest.setBoardRequestName(request.getBoard_request_name());
         }
         if (request.getDescription() != null && !request.getDescription().isBlank()) {
             boardRequest.setDescription(request.getDescription());
         }
         if (request.getBoard_request_key() != null && !request.getBoard_request_key().isBlank()) {
-            boardRequest.setBoard_request_key(request.getBoard_request_key());
+            boardRequest.setBoardRequestKey(request.getBoard_request_key());
         }
         if (request.getJustification() != null && !request.getJustification().isBlank()) {
             boardRequest.setJustification(request.getJustification());
@@ -185,7 +207,7 @@ public class BoardRequestService {
         boardRequestRepository.save(boardRequest);
     }
     @Transactional
-    public void deleteMyRequest(@PathVariable UUID id)
+    public void deleteMyRequest(@PathVariable String id)
     {
         User proj_admin = authUser(new AuthenticationException("User not authenticated"));
         BoardRequest boardRequest = boardRequestRepository.findById(id)
@@ -200,7 +222,7 @@ public class BoardRequestService {
         boardRequestRepository.delete(boardRequest);
     }
     //Get specific board id request
-    public BoardDetailsDTO getMyRequest(@PathVariable UUID id)
+    public BoardDetailsDTO getMyRequest(@PathVariable String id)
     {
         User current_user = authUser(new AuthenticationException("User not authenticated"));
         BoardRequest boardRequest = boardRequestRepository.findById(id)
@@ -210,17 +232,17 @@ public class BoardRequestService {
             throw new AccessNotGivenException("You can only view your own requests");
         }
         BoardDetailsDTO boardDetailsDTO =BoardDetailsDTO.builder()
-                .board_request_id(boardRequest.getBoard_request_id())
-                .board_request_key(boardRequest.getBoard_request_key())
+                .board_request_id(boardRequest.getBoardRequestId())
+                .board_request_key(boardRequest.getBoardRequestKey())
                 .justification(boardRequest.getJustification())
                 .requestedAt(boardRequest.getRequestedAt())
-                .board_request_name(boardRequest.getBoard_request_name())
+                .board_request_name(boardRequest.getBoardRequestName())
                 .description(boardRequest.getDescription())
                 .status(boardRequest.getStatus())
                 .approvedAt(boardRequest.getApprovedAt())
                 .reviewedBy(boardRequest.getReviewedBy())
                 .rejectedAt(boardRequest.getRejectedAt())
-                .rejection_reason(boardRequest.getRejection_reason())
+                .rejection_reason(boardRequest.getRejectionReason())
                 .build();
         return boardDetailsDTO;
     }
@@ -233,9 +255,9 @@ public class BoardRequestService {
     }
     private BoardDetailsDTO mapTodetailsDTO(BoardRequest entity) {
         BoardDetailsDTO dto = new BoardDetailsDTO();
-        dto.setBoard_request_id(entity.getBoard_request_id());
-        dto.setBoard_request_name(entity.getBoard_request_name());
-        dto.setBoard_request_key(entity.getBoard_request_key());
+        dto.setBoard_request_id(entity.getBoardRequestId());
+        dto.setBoard_request_name(entity.getBoardRequestName());
+        dto.setBoard_request_key(entity.getBoardRequestKey());
         dto.setJustification(entity.getJustification());
         dto.setDescription(entity.getDescription());
         dto.setRequester(entity.getRequester());
@@ -248,7 +270,7 @@ public class BoardRequestService {
         return dto;
     }
 
-    public BoardDetailsDTO getRequestById(UUID id)
+    public BoardDetailsDTO getRequestById(String id)
     {
         Authentication auth=SecurityContextHolder.getContext().getAuthentication();
         Auth optionalAuth=authRepository.findByEmail(auth.getName())

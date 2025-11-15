@@ -8,7 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Set;
-import java.util.UUID;
 
 @Data
 @AllArgsConstructor
@@ -16,9 +15,9 @@ import java.util.UUID;
 @Builder
 public class TransitionRequest {
     @NotBlank(message = "FROM Status_id cannot be left blank")
-   private UUID from_status_id;
+   private String from_status_id;
     @NotBlank(message="TO Status_id cannot be left blank")
-   private UUID to_status_id;
+   private String to_status_id;
     @NotEmpty(message = "At least one role must be specified")
     private Set<String> allowedRoles;
 

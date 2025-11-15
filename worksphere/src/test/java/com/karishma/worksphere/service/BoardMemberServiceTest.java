@@ -57,29 +57,29 @@ class BoardMemberServiceTest {
         boardMemberId = UUID.randomUUID();
 
         user = User.builder()
-                .user_id(UUID.randomUUID())
-                .user_name("John Doe")
+                .userId(UUID.randomUUID())
+                .userName("John Doe")
                 .role(Role.MEMBER)
-                .job_title("Developer")
+                .jobTitle("Developer")
                 .department("Engineering")
-                .profile_picture_url("profile.png")
+                .profilePictureUrl("profile.png")
                 .build();
 
         auth = Auth.builder()
-                .auth_id(UUID.randomUUID())
+                .authId(UUID.randomUUID())
                 .email("john@example.com")
-                .hashed_pass("hashed")
+                .hashedPass("hashed")
                 .user(user)
                 .build();
 
         board = Board.builder()
-                .board_id(boardId)
-                .board_name("Project Alpha")
-                .board_key("PA")
+                .boardId(boardId)
+                .boardName("Project Alpha")
+                .boardKey("PA")
                 .build();
 
         boardMember = BoardMember.builder()
-                .board_member_id(boardMemberId)
+                .boardMemberId(boardMemberId)
                 .board(board)
                 .user(user)
                 .boardRole(BoardRole.PROJECT_MEMBER)
@@ -99,15 +99,15 @@ class BoardMemberServiceTest {
         when(boardMemberRepository.existsByBoardAndUser(board, user)).thenReturn(false);
         when(boardMemberRepository.save(any(BoardMember.class))).thenAnswer(inv -> {
             BoardMember bm = inv.getArgument(0);
-            bm.setBoard_member_id(UUID.randomUUID());
+            bm.setBoardMemberId(UUID.randomUUID());
             return bm;
         });
 
         AddBoardMemberResponseDTO response = boardMemberService.addBoardMember(boardId, addBoardMemberDTO);
 
         assertNotNull(response);
-        assertEquals(board.getBoard_name(), response.getBoard().getBoard_name());
-        assertEquals(user.getUser_name(), response.getUser().getUser_name());
+        assertEquals(board.getBoardName(), response.getBoard().getBoardName());
+        assertEquals(user.getUserName(), response.getUser().getUserName());
         verify(boardMemberRepository, times(1)).save(any(BoardMember.class));
     }
 
@@ -162,15 +162,15 @@ class BoardMemberServiceTest {
 
         BoardMemberDetailsDTO dto = boardMemberService.getMemberDetails(boardId, boardMemberId);
 
-        assertEquals(board.getBoard_id(), dto.getBoard_id());
-        assertEquals(user.getUser_name(), dto.getUser_name());
+        assertEquals(board.getBoardId(), dto.getBoard_id());
+        assertEquals(user.getUserName(), dto.getUser_name());
         assertEquals("john@example.com", dto.getEmail());
     }
 
     // ❌ TEST 7: Get Member Details - Member Not in Board
     @Test
     void testGetMemberDetails_NotInBoard() {
-        Board otherBoard = Board.builder().board_id(UUID.randomUUID()).board_name("Another").build();
+        Board otherBoard = Board.builder().boardId(UUID.randomUUID()).boardName("Another").build();
         boardMember.setBoard(otherBoard);
 
         when(boardRepository.findById(boardId)).thenReturn(Optional.of(board));
@@ -184,12 +184,12 @@ class BoardMemberServiceTest {
     @Test
     void testGetBoardMembers_Success() {
         when(boardRepository.findById(boardId)).thenReturn(Optional.of(board));
-        when(boardMemberRepository.findByBoardId(boardId)).thenReturn(List.of(boardMember));
+        when(boardMemberRepository.findByBoard_BoardId(boardId)).thenReturn(List.of(boardMember));
 
         List<AllBoardMemberDTO> members = boardMemberService.getBoardMembers(boardId);
 
         assertEquals(1, members.size());
-        assertEquals(user.getUser_name(), members.get(0).getUser_name());
+        assertEquals(user.getUserName(), members.get(0).getUser_name());
     }
 
     // ❌ TEST 9: Get Board Members - Board Not Found

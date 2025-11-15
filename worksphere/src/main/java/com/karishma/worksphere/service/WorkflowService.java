@@ -18,7 +18,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +27,7 @@ public class WorkflowService {
     private final WorkflowTransitionRepository workflowTransitionRepository;
     private final WorkflowStatusRepository workflowStatusRepository;
     private final BoardRepository boardRepository;
-    public WorkflowResponse createWorkflow( UUID id, WorkflowRequestDTO request)
+    public WorkflowResponse createWorkflow( String id, WorkflowRequestDTO request)
     {
         Board board=boardRepository.findById(id)
                 .orElseThrow(()->new NotFoundException("Board not found"));
@@ -52,7 +51,7 @@ public class WorkflowService {
               .build();
       return response;
     }
-    public List<BoardWorkflowDTO>  getBoardWorkflows(UUID id)
+    public List<BoardWorkflowDTO>  getBoardWorkflows(String id)
     {
         Board board=boardRepository.findById(id)
                 .orElseThrow(()->new NotFoundException("Board not found"));
@@ -69,7 +68,7 @@ public class WorkflowService {
 
 
     }
-    public WorkflowUpdateResponse updateWorkflow(UUID id, WorkflowUpdateDTO request) {
+    public WorkflowUpdateResponse updateWorkflow(String id, WorkflowUpdateDTO request) {
 
         if (request.getWorkflow_name() == null && request.getIsDefault() == null) {
             throw new BadRequestException("At least one field must be provided for update");
@@ -81,8 +80,8 @@ public class WorkflowService {
         if (request.getWorkflow_name() != null &&
                 !request.getWorkflow_name().equals(workflow.getWorkflowName())) {
 
-            if (workflowRepository.existsByBoardIdAndWorkflowName(
-                    workflow.getBoard().getBoard_id(), request.getWorkflow_name())) {
+            if (workflowRepository.existsByBoard_BoardIdAndWorkflowName(
+                    workflow.getBoard().getBoardId(), request.getWorkflow_name())) {
                 throw new BadRequestException("Workflow name already exists in this board");
             }
 
@@ -92,7 +91,7 @@ public class WorkflowService {
         if (request.getIsDefault() != null) {
 
             if (request.getIsDefault() && !workflow.isDefault()) {
-                workflowRepository.findByBoardIdAndIsDefaultTrue(workflow.getBoard().getBoard_id())
+                workflowRepository.findByBoard_BoardIdAndIsDefaultTrue(workflow.getBoard().getBoardId())
                         .ifPresent(existingDefault -> {
                             existingDefault.setDefault(false);
                             workflowRepository.save(existingDefault);
@@ -103,7 +102,7 @@ public class WorkflowService {
 
             else if (!request.getIsDefault() && workflow.isDefault()) {
 
-                long totalWorkflows = workflowRepository.countByBoard_BoardId(workflow.getBoard().getBoard_id());
+                long totalWorkflows = workflowRepository.countByBoard_BoardId(workflow.getBoard().getBoardId());
 
                 if (totalWorkflows <= 1) {
                     throw new BadRequestException(
@@ -122,11 +121,11 @@ public class WorkflowService {
                 .build();
         return response;
     }
-    public void deleteWorkflow(UUID id) {
+    public void deleteWorkflow(String id) {
         Workflow workflow = workflowRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("No workflow exists with this ID"));
 
-        UUID boardId = workflow.getBoard().getBoard_id();
+        String boardId = workflow.getBoard().getBoardId();
 
         long totalWorkflows = workflowRepository.countByBoard_BoardId(boardId);
 
@@ -136,7 +135,7 @@ public class WorkflowService {
 
         workflowRepository.delete(workflow);
     }
-    public StatusResponse addStatus(UUID id, AddStatusDTO request)
+    public StatusResponse addStatus(String id, AddStatusDTO request)
     {
         Workflow workflow=workflowRepository.findById(id)
                 .orElseThrow(()->new NotFoundException("Workflow does not exist with this id"));
@@ -157,12 +156,12 @@ public class WorkflowService {
         workflowStatusRepository.save(workflowStatus);
         StatusResponse statusResponse=StatusResponse.builder()
                 .status_name(workflowStatus.getStatusName())
-                .id(workflowStatus.getStatus_id())
+                .id(workflowStatus.getStatusId())
                 .build();
         return statusResponse;
 
     }
- public void deleteStatus(UUID workflow_id,UUID status_id)
+ public void deleteStatus(String workflow_id,String status_id)
  {
      Workflow workflow=workflowRepository.findById(workflow_id)
              .orElseThrow(()->new NotFoundException("Workflow does not exists"));
@@ -174,7 +173,7 @@ public class WorkflowService {
      }
      workflowStatusRepository.delete(workflowStatus);
  }
-    public TransitionResponse addTransition(UUID id, TransitionRequest request)
+    public TransitionResponse addTransition(String id, TransitionRequest request)
     {
         Workflow workflow = workflowRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Workflow with id " + id + " does not exist"));
@@ -215,7 +214,7 @@ public class WorkflowService {
 
         return response;
     }
-    public void deleteTransition(UUID workflow_id , UUID transition_id)
+    public void deleteTransition(String workflow_id , String transition_id)
     {
         Workflow workflow = workflowRepository.findById(workflow_id)
                 .orElseThrow(()->new BadRequestException("No such workflow id exists"));

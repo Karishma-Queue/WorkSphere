@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Builder
@@ -19,17 +18,23 @@ import java.util.UUID;
 public class BoardMember {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID board_member_id;
+    @Column(name = "board_member_id")
+    private String boardMemberId;
+
     @ManyToOne
-    @JoinColumn(name="user_id",nullable=false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
     @ManyToOne
-    @JoinColumn(name="board_id",nullable=false)
+    @JoinColumn(name = "board_id", nullable = false)
     private Board board;
+
     @Enumerated(EnumType.STRING)
+    @Column(name = "board_role")
     @Builder.Default
-    private BoardRole boardRole= BoardRole.PROJECT_MEMBER;
+    private BoardRole boardRole = BoardRole.PROJECT_MEMBER;
+
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
+    @Column(name = "joined_at", nullable = false, updatable = false)
     private LocalDateTime joinedAt;
 }

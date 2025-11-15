@@ -37,22 +37,22 @@ public class AuthService {
     String hashedPassword= passwordEncoder.encode(request.getPassword());
     String url=cloudinaryService.uploadProfilePicture(request.getProfile_picture());
        User user=User.builder()
-               .user_name(request.getUser_name())
+               .userName(request.getUser_name())
                .department(request.getDepartment())
-               .job_title(request.getJob_title())
+               .jobTitle(request.getJob_title())
                .role(request.getRole())
-               .profile_picture_url(url)
+               .profilePictureUrl(url)
                .build();
        userRepository.save(user);
 
         Auth auth=Auth.builder()
                .email(request.getEmail())
                .user(user)
-               .hashed_pass(hashedPassword)
+               .hashedPass(hashedPassword)
                .build();
        authRepository.save(auth);
 
-        return new SignupResponse(user.getUser_name(),user.getJob_title(),user.getRole().toString(),user.getDepartment(),user.getProfile_picture_url(),auth.getEmail());
+        return new SignupResponse(user.getUserName(),user.getJobTitle(),user.getRole().toString(),user.getDepartment(),user.getProfilePictureUrl(),auth.getEmail());
     }
     public LoginResponse loginUser(LoginRequest request)
     {
@@ -66,7 +66,7 @@ public class AuthService {
        }
        Auth auth=optionalAuth.get();
        User user=auth.getUser();
-       boolean matches= passwordEncoder.matches(request.getPassword(), auth.getHashed_pass());
+       boolean matches= passwordEncoder.matches(request.getPassword(), auth.getHashedPass());
        if(!matches)
        {
            throw new InvalidCredentialsException("Incorrect password");
@@ -75,9 +75,9 @@ public class AuthService {
                String token = jwtUtil.generateToken(auth.getEmail(), user.getRole().toString());
 
         return LoginResponse.builder()
-                .user_name(user.getUser_name())
+                .user_name(user.getUserName())
                 .role(user.getRole())
-                .profile_picture_url(user.getProfile_picture_url())
+                .profile_picture_url(user.getProfilePictureUrl())
                 .email(auth.getEmail())
                 .token(token)
                 .build();

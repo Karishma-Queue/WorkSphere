@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Data
@@ -19,20 +18,26 @@ import java.util.UUID;
 @Builder
 public class User {
     @Id
+    //TODO CHANGE TO EMBEDDEDID
     @GeneratedValue(strategy=GenerationType.UUID)
-    private UUID user_id;
+    private String userId;
+
     @Column(nullable = false)
-    private String user_name;
+    private String userName;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+
     @Column(nullable=false)
-    private String job_title;
+    private String jobTitle;
+
     @Column(nullable=false)
     private String department;
-    private String profile_picture_url;
+
+    private String profilePictureUrl;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
-
-
+    //TODO Updated-at
 }

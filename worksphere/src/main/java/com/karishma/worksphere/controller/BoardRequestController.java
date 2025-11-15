@@ -19,7 +19,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -51,14 +50,14 @@ public class BoardRequestController {
 //approving requests by admin
     @AllowOnlyAdmin
     @PostMapping("/{id}/approve")
-    public ResponseEntity<?> approveRequest(@PathVariable UUID id) {
+    public ResponseEntity<?> approveRequest(@PathVariable String id) {
         boardRequestService.approveRequest(id);
         return ResponseEntity.ok("Request approved for " + id);
     }
 //rejecting requests by admin
     @AllowOnlyAdmin
     @PostMapping("/{id}/reject")
-    public ResponseEntity<?> rejectRequest(@PathVariable UUID id, @RequestBody RejectRequestDTO request) {
+    public ResponseEntity<?> rejectRequest(@PathVariable String id, @RequestBody RejectRequestDTO request) {
         boardRequestService.rejectRequest(id, request);
         return ResponseEntity.ok("Request rejected for " + id);
     }
@@ -82,7 +81,7 @@ public class BoardRequestController {
     @AllowOnlyMember
     @PutMapping("/my-requests/{id}/update")
 
-    public ResponseEntity<String> updateMyRequest(@PathVariable UUID id, @RequestBody BoardRequestUpdateDTO request)
+    public ResponseEntity<String> updateMyRequest(@PathVariable String id, @RequestBody BoardRequestUpdateDTO request)
     {
         boardRequestService.updateMyRequest(id,request);
         return ResponseEntity.ok("Project-request updated successfully with id "+id);
@@ -91,7 +90,7 @@ public class BoardRequestController {
     //Deleting board request (MEMBER CONTROL)
     @AllowOnlyMember
     @DeleteMapping("/my-requests/{id}/delete")
-    public ResponseEntity<String> deleteMyRequest(@PathVariable UUID id)
+    public ResponseEntity<String> deleteMyRequest(@PathVariable String id)
     {
         boardRequestService.deleteMyRequest(id);
         return ResponseEntity.ok("Project-request deleted successfully with id"+id);
@@ -100,7 +99,7 @@ public class BoardRequestController {
     //GET PARTICULAR PROJECT ID
     @AllowOnlyMember
     @GetMapping("/my-projects/{id}")
-    public BoardDetailsDTO getMyRequest(@PathVariable UUID id)
+    public BoardDetailsDTO getMyRequest(@PathVariable String id)
     {
        return  boardRequestService.getMyRequest(id);
 
@@ -115,10 +114,11 @@ public class BoardRequestController {
     }
     @AllowOnlyAdmin
     @GetMapping("/admin/{id}")
-    public BoardDetailsDTO getRequestById(@PathVariable UUID id)
+    public BoardDetailsDTO getRequestById(@PathVariable String id)
     {
         return boardRequestService.getRequestById(id);
     }
+
 }
 
 

@@ -12,7 +12,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -26,7 +25,7 @@ public class IssueService {
     private final IssueRepository issueRepository;
 
     // ✅ 1️⃣ Create Issue
-    public IssueResponse createIssue(UUID boardId, CreateIssueDTO request) {
+    public IssueResponse createIssue(String boardId, CreateIssueDTO request) {
 
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new NotFoundException("No board exists with id " + boardId));
@@ -78,7 +77,7 @@ public class IssueService {
                 .assignee(assignee)
                 .parent(parent)
                 .epic(epic)
-                .due_date(request.getDue_Date())
+                .dueDate(request.getDue_Date())
                 .build();
 
         Issue savedIssue = issueRepository.save(issue);
@@ -86,33 +85,33 @@ public class IssueService {
     }
 
     // ✅ 2️⃣ Get all issues in a board
-    public List<IssueResponse> getAllIssues(UUID boardId) {
+    public List<IssueResponse> getAllIssues(String boardId) {
         List<Issue> issues = issueRepository.findByBoard_BoardId(boardId);
         return issues.stream().map(this::mapToIssueResponse).toList();
     }
 
     // ✅ 3️⃣ Get single issue by ID
-    public IssueResponse getIssueById(UUID boardId, UUID issueId) {
+    public IssueResponse getIssueById(String boardId, String issueId) {
         Issue issue = issueRepository.findById(issueId)
                 .orElseThrow(() -> new NotFoundException("Issue not found"));
-        if (!issue.getBoard().getBoard_id().equals(boardId)) {
+        if (!issue.getBoard().getBoardId().equals(boardId)) {
             throw new BadRequestException("Issue does not belong to this board");
         }
         return mapToIssueResponse(issue);
     }
 
     // ✅ 4️⃣ Update issue
-    public IssueResponse updateIssue(UUID boardId, UUID issueId, UpdateIssueDTO request) {
+    public IssueResponse updateIssue(String boardId, String issueId, UpdateIssueDTO request) {
         Issue issue = issueRepository.findById(issueId)
                 .orElseThrow(() -> new NotFoundException("Issue not found"));
-        if (!issue.getBoard().getBoard_id().equals(boardId)) {
+        if (!issue.getBoard().getBoardId().equals(boardId)) {
             throw new BadRequestException("Issue does not belong to this board");
         }
 
         if (request.getSummary() != null) issue.setSummary(request.getSummary());
         if (request.getDescription() != null) issue.setDescription(request.getDescription());
         if (request.getPriority() != null) issue.setPriority(request.getPriority());
-        if (request.getDue_date() != null) issue.setDue_date(request.getDue_date());
+        if (request.getDue_date() != null) issue.setDueDate(request.getDue_date());
 
         if (request.getAssignee_id() != null) {
             BoardMember boardMember = boardMemberRepository
@@ -126,20 +125,20 @@ public class IssueService {
     }
 
     // ✅ 5️⃣ Delete issue
-    public void deleteIssue(UUID boardId, UUID issueId) {
+    public void deleteIssue(String boardId, String issueId) {
         Issue issue = issueRepository.findById(issueId)
                 .orElseThrow(() -> new NotFoundException("Issue not found"));
-        if (!issue.getBoard().getBoard_id().equals(boardId)) {
+        if (!issue.getBoard().getBoardId().equals(boardId)) {
             throw new BadRequestException("Issue does not belong to this board");
         }
         issueRepository.delete(issue);
     }
 
     // ✅ 6️⃣ Change issue status
-    public IssueResponse changeIssueStatus(UUID boardId, UUID issueId, UUID statusId) {
+    public IssueResponse changeIssueStatus(String boardId, String issueId, String statusId) {
         Issue issue = issueRepository.findById(issueId)
                 .orElseThrow(() -> new NotFoundException("Issue not found"));
-        if (!issue.getBoard().getBoard_id().equals(boardId)) {
+        if (!issue.getBoard().getBoardId().equals(boardId)) {
             throw new BadRequestException("Issue does not belong to this board");
         }
 
@@ -158,23 +157,23 @@ public class IssueService {
     // ✅ Mapper method
     private IssueResponse mapToIssueResponse(Issue issue) {
         return IssueResponse.builder()
-                .issueId(issue.getIssue_id())
+                .issueId(issue.getIssueId())
                 .summary(issue.getSummary())
                 .description(issue.getDescription())
                 .priority(issue.getPriority().name())
                 .issueType(issue.getIssue().name())
                 .status(issue.getStatus().getStatusName())
-                .boardName(issue.getBoard().getBoard_name())
+                .boardName(issue.getBoard().getBoardName())
                 .workflowName(issue.getWorkflow().getWorkflowName())
-                .dueDate(issue.getDue_date())
+                .dueDate(issue.getDueDate())
                 .createdAt(issue.getCreatedAt())
-                .updatedAt(issue.getUpdated_at())
-                .reporterId(issue.getReporter().getUser_id())
-                .reporterName(issue.getReporter().getUser_name())
-                .assigneeId(issue.getAssignee() != null ? issue.getAssignee().getUser_id() : null)
-                .assigneeName(issue.getAssignee() != null ? issue.getAssignee().getUser_name() : null)
-                .parentId(issue.getParent() != null ? issue.getParent().getIssue_id() : null)
-                .epicId(issue.getEpic() != null ? issue.getEpic().getIssue_id() : null)
+                .updatedAt(issue.getUpdatedAt())
+                .reporterId(issue.getReporter().getUserId())
+                .reporterName(issue.getReporter().getUserName())
+                .assigneeId(issue.getAssignee() != null ? issue.getAssignee().getUserId() : null)
+                .assigneeName(issue.getAssignee() != null ? issue.getAssignee().getUserName() : null)
+                .parentId(issue.getParent() != null ? issue.getParent().getIssueId() : null)
+                .epicId(issue.getEpic() != null ? issue.getEpic().getIssueId() : null)
                 .build();
     }
 }

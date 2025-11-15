@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -17,6 +16,6 @@ public class UpdateIssueDTO {
     private String summary;
     private String description;
     private Priority priority;
-    private UUID assignee_id;
+    private String assignee_id;
     private LocalDate due_date;
 }

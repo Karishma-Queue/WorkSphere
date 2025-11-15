@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -26,10 +25,10 @@ public class CreateIssueDTO
         private String summary;
         @NotNull(message="Priority is required")
         private Priority priority;
-        private UUID assignee_id;
+        private String assignee_id;
         private String description;
-        private UUID parent_id;
-        private UUID epic_id;
+        private String parent_id;
+        private String epic_id;
         private LocalDate due_Date;
 
 
