@@ -13,21 +13,18 @@ import org.springframework.stereotype.Component;
 @Aspect
 @Component
 public class AllowOnlyAdminAspect {
-    @Before("@annotation(allowOnlyAdmin)")
-    public void checkRole(JoinPoint joinPoint, AllowOnlyAdmin allowOnlyAdmin)
-    {
-        Authentication auth= SecurityContextHolder.getContext().getAuthentication();
-        if(auth==null ||!auth.isAuthenticated())
-        {
-            throw new AccessNotGivenException("User must be logged in");
-
-        }
-        boolean isAdmin=auth.getAuthorities().stream().map(GrantedAuthority::getAuthority)
-                .anyMatch(role->role.equals("ROLE_ADMIN"));
-        if(!isAdmin)
-        {
-            throw new AccessNotGivenException("You are not authorized");
-        }
-
+  @Before("@annotation(allowOnlyAdmin)")
+  public void checkRole(JoinPoint joinPoint, AllowOnlyAdmin allowOnlyAdmin) {
+    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+    if (auth == null || !auth.isAuthenticated()) {
+      throw new AccessNotGivenException("User must be logged in");
     }
+    boolean isAdmin =
+        auth.getAuthorities().stream()
+            .map(GrantedAuthority::getAuthority)
+            .anyMatch(role -> role.equals("ROLE_ADMIN"));
+    if (!isAdmin) {
+      throw new AccessNotGivenException("You are not authorized");
+    }
+  }
 }
