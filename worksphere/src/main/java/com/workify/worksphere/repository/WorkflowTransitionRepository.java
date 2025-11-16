@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 
 public interface WorkflowTransitionRepository extends JpaRepository<WorkflowTransition, String> {
-    boolean existsByWorkflow_WorkflowIdAndFromStatus_StatusIdAndToStatus_StatusId(String id,
-                                                                                  String id1,
-                                                                                  String id2);
+    boolean existsByWorkflow_WorkflowIdAndFromStatus_StatusIdAndToStatus_StatusId(String workflowId,
+                                                                                  String fromStatusId,
+                                                                                  String toStatusId);
 }

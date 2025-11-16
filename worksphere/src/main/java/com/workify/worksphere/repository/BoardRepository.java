@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface BoardRepository extends JpaRepository<Board, String> {
-    List<Board> findByCreatedBy_UserId(String user_id);
+    List<Board> findByCreatedBy_UserId(String userId);
     @Query("""
            SELECT b FROM Board b 
            WHERE LOWER(b.boardName) LIKE LOWER(CONCAT('%', :query, '%'))

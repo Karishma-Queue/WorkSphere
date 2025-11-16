@@ -18,7 +18,8 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/workflow")
-public class WorkflowController {
+public class WorkflowController
+{
     private final WorkflowService workflowService;
     @AllowOnlyProjAdmin
     @PostMapping("/{board_id}")
@@ -28,7 +29,7 @@ public class WorkflowController {
         return workflowService.createWorkflow(board_id,request);
     }
     @AllowOnlyProjAdmin
-    @GetMapping("/boards/{board_id}")
+    @GetMapping("/board/{board_id}")
     //Get all workflows for a board
     public ResponseEntity<List<BoardWorkflowDTO>> getBoardWorkflows(@PathVariable @BoardIdParam String board_id)
     {
@@ -53,29 +54,31 @@ public class WorkflowController {
        return ResponseEntity.ok("Deleted successfully");
    }
    @AllowOnlyProjAdmin
-   @PostMapping("/{workflow_id}/statuses")
+   @PostMapping("/{workflow_id}/status")
     public StatusResponse addStatus(@PathVariable @WorkflowIdParam String workflow_id, @RequestBody AddStatusDTO request)
    {
        return workflowService.addStatus(workflow_id,request);
    }
    @AllowOnlyProjAdmin
-   @DeleteMapping("/{workflow_id}/statuses/{status_id}")
+   @DeleteMapping("/{workflow_id}/status/{status_id}")
     public ResponseEntity<String> deleteStatus(@PathVariable @WorkflowIdParam  String workflow_id,@PathVariable String status_id)
    {
        workflowService.deleteStatus(workflow_id,status_id);
        return ResponseEntity.ok("Deleted successfully status with id "+status_id);
    }
    @AllowOnlyProjAdmin
-   @PostMapping("/{workflow_id}/transitions")
+   @PostMapping("/{workflow_id}/transition")
     public TransitionResponse addTransition(@PathVariable  @WorkflowIdParam  String workflow_id,@RequestBody TransitionRequest request)
    {
        return workflowService.addTransition(workflow_id,request);
    }
    @AllowOnlyProjAdmin
-   @DeleteMapping("/{workflow_id}/transitions/{transition_id}")
+   @DeleteMapping("/{workflow_id}/transition/{transition_id}")
     public ResponseEntity<String> removeTransition(@PathVariable @WorkflowIdParam String workflow_id,@PathVariable String transition_id)
    {
        workflowService.deleteTransition(workflow_id,transition_id);
        return ResponseEntity.ok("Deleted successfully");
    }
 }
+
+

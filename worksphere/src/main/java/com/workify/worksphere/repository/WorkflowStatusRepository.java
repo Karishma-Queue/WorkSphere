@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface WorkflowStatusRepository extends JpaRepository<WorkflowStatus, String> {
     boolean existsByWorkflow_WorkflowIdAndStatusName(String workflowId, String statusName);
-    boolean existsByWorkflow_WorkflowIdAndStatusId(String id1, String id2);
-    Optional<WorkflowStatus> findByWorkflow_WorkflowIdAndStatusId(String id1, String id2);
-    Optional<WorkflowStatus> findByWorkflow_WorkflowIdAndIsInitialTrue(String id);
+    boolean existsByWorkflow_WorkflowIdAndStatusId(String workflowId, String statusId);
+    Optional<WorkflowStatus> findByWorkflow_WorkflowIdAndStatusId(String workflowId, String statusId);
+    Optional<WorkflowStatus> findByWorkflow_WorkflowIdAndIsInitialTrue(String workflowId);
 }

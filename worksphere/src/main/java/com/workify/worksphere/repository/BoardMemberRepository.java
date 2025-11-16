@@ -18,6 +18,6 @@ public interface BoardMemberRepository extends JpaRepository<BoardMember, String
     List<BoardMember> findByBoard_BoardId(String boardId);
 
     Optional<BoardMember> findByBoard_BoardIdAndBoardMemberId(  String boardId, String memberId);
-    List<BoardMember> findByUser_UserIdAndBoardRole(String user_id,BoardRole role);
+    List<BoardMember> findByUser_UserIdAndBoardRole(String userId,BoardRole role);
     Optional<BoardMember> findByBoard_BoardIdAndBoardRole(String boardId, BoardRole boardRole);
 }

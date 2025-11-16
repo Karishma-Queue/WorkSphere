@@ -63,7 +63,7 @@ public class BoardRequestController {
 //getting requests made by a particular member
 
     @AllowOnlyMember
-    @GetMapping("/my-requests")
+    @GetMapping("/my-request")
     public ResponseEntity<List<BoardRequestResponse>> getMyRequests(
             @RequestParam(required = false) Status status) {
         List<BoardRequestResponse> responses;
@@ -78,7 +78,7 @@ public class BoardRequestController {
 
     //Updating board request( MEMBER CONTROL)
     @AllowOnlyMember
-    @PutMapping("/my-requests/{id}/update")
+    @PutMapping("/my-request/{id}/update")
 
     public ResponseEntity<String> updateMyRequest(@PathVariable String id, @RequestBody BoardRequestUpdateDTO request)
     {
@@ -88,7 +88,7 @@ public class BoardRequestController {
     }
     //Deleting board request (MEMBER CONTROL)
     @AllowOnlyMember
-    @DeleteMapping("/my-requests/{id}/delete")
+    @DeleteMapping("/my-request/{id}/delete")
     public ResponseEntity<String> deleteMyRequest(@PathVariable String id)
     {
         boardRequestService.deleteMyRequest(id);
@@ -97,7 +97,7 @@ public class BoardRequestController {
     }
     //GET PARTICULAR PROJECT ID
     @AllowOnlyMember
-    @GetMapping("/my-projects/{id}")
+    @GetMapping("/my-project/{id}")
     public BoardDetailsDTO getMyRequest(@PathVariable String id)
     {
        return  boardRequestService.getMyRequest(id);

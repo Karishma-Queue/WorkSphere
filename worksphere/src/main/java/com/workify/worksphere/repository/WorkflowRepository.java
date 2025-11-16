@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface WorkflowRepository extends JpaRepository<Workflow, String> {
-    List<Workflow> findByBoard_BoardId(String id);
-    boolean existsByBoard_BoardIdAndWorkflowName(String id, String name);
+    List<Workflow> findByBoard_BoardId(String boardId);
+    boolean existsByBoard_BoardIdAndWorkflowName(String boardId, String workflowName);
     long countByBoard_BoardId(String boardId);
-    Workflow findByBoard_BoardIdAndIssueType(String id, IssueType issueType);
-    Optional<Workflow> findByBoard_BoardIdAndIsDefaultTrue(String id);
+    Workflow findByBoard_BoardIdAndIssueType(String boardId, IssueType issueType);
+    Optional<Workflow> findByBoard_BoardIdAndIsDefaultTrue(String boardId);
 }
