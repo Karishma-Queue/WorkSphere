@@ -1,12 +1,12 @@
 package com.workify.worksphere.model.entity;
 
+import com.workify.worksphere.model.value.Email;
+import com.workify.worksphere.model.valueobject.Email;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-
 
 @Entity
 @Data
@@ -14,18 +14,19 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Auth {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "auth_id")
-    private String authId;
+  @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(name = "auth_id")
+  private String authId;
 
-    @Column(nullable = false, unique = true)
-    private String email;
+  @Embedded
+  @AttributeOverride(name = "email", column = @Column(name = "email", nullable = false, unique = true))
+  private Email email;
 
-    @Column(name = "hashed_pass", nullable = false)
-    private String hashedPass;
+  @Column(name = "hashed_pass", nullable = false)
+  private String hashedPass;
 
-    @OneToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+  @OneToOne
+  @JoinColumn(name = "user_id")
+  private User user;
 }

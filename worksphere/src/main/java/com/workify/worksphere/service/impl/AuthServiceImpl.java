@@ -9,6 +9,7 @@ import com.workify.worksphere.model.dto.response.LoginResponse;
 import com.workify.worksphere.model.dto.response.SignupResponse;
 import com.workify.worksphere.model.entity.Auth;
 import com.workify.worksphere.model.entity.User;
+import com.workify.worksphere.model.value.Email;
 import com.workify.worksphere.repository.AuthRepository;
 import com.workify.worksphere.repository.UserRepository;
 import com.workify.worksphere.security.JwtUtil;
@@ -50,9 +51,10 @@ public class AuthServiceImpl implements AuthService {
         .build();
 
     userRepository.save(user);
+    Email email = Email.of(request.getEmail());
 
     Auth auth = Auth.builder()
-        .email(request.getEmail())
+        .email(email.getValue())
         .user(user)
         .hashedPass(hashedPassword)
         .build();
