@@ -2,6 +2,7 @@ package com.workify.worksphere.model.entity;
 
 import com.workify.worksphere.model.enums.IssueType;
 import com.workify.worksphere.model.enums.Priority;
+import com.workify.worksphere.model.value.IssueId;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,74 +14,79 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-
-
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Issue {
-    @Id
-    @GeneratedValue(strategy= GenerationType.UUID)
-    private String issueId;
 
-    @Column(nullable=false)
-    private String summary;
+  @EmbeddedId
+  private IssueId issueId;
 
-    @Column(columnDefinition = "TEXT")
-    private String description;
+  @PrePersist
+  private void generateId() {
+    if (this.issueId == null) {
+      this.issueId = IssueId.generate();
+    }
+  }
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Priority priority;
+  @Column(nullable=false)
+  private String summary;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private IssueType issue;
+  @Column(columnDefinition = "TEXT")
+  private String description;
 
-    @CreationTimestamp
-    @Column(nullable=false, updatable = false)
-    private LocalDateTime createdAt;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private Priority priority;
 
-    private LocalDate dueDate;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false)
+  private IssueType issue;
 
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+  @CreationTimestamp
+  @Column(nullable=false, updatable = false)
+  private LocalDateTime createdAt;
 
-    private LocalDateTime resolvedAt;
+  private LocalDate dueDate;
 
-    @ManyToOne
-    @JoinColumn(name="reporter_id", nullable=false)
-    private User reporter;
+  @UpdateTimestamp
+  private LocalDateTime updatedAt;
 
-    @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="assignee_id")
-    private User assignee;
+  private LocalDateTime resolvedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_id", nullable = false)
-    private Board board;
+  @ManyToOne
+  @JoinColumn(name="reporter_id", nullable=false)
+  private User reporter;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "workflow_id", nullable = false)
-    private Workflow workflow;
+  @ManyToOne(fetch=FetchType.LAZY)
+  @JoinColumn(name="assignee_id")
+  private User assignee;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "status_id", nullable = false)
-    private WorkflowStatus status;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "board_id", nullable = false)
+  private Board board;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "parent_id")
-    private Issue parent;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "workflow_id", nullable = false)
+  private Workflow workflow;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Issue> subtasks;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "status_id", nullable = false)
+  private WorkflowStatus status;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "epic_id")
-    private Issue epic;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "parent_id")
+  private Issue parent;
 
-    @OneToMany(mappedBy = "epic", cascade = CascadeType.ALL)
-    private List<Issue> epicChildren;
+  @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<Issue> subtasks;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "epic_id")
+  private Issue epic;
+
+  @OneToMany(mappedBy = "epic", cascade = CascadeType.ALL)
+  private List<Issue> epicChildren;
 }
