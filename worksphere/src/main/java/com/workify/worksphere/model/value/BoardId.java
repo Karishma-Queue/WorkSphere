@@ -12,7 +12,7 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor
 @EqualsAndHashCode
-public class BoardId {
+public final class BoardId {
 
   @Column(name = "board_id")
   private String value;

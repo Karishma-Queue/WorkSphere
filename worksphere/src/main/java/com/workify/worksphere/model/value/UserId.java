@@ -11,35 +11,35 @@ import java.util.UUID;
 
 @Embeddable
 @Getter
-@EqualsAndHashCode
 @NoArgsConstructor
-public final class AuthId implements Serializable {
+@EqualsAndHashCode
+public class UserId implements Serializable {
 
-  @Column(name = "auth_id")
+  @Column(name = "user_id", length = 36)
   private String value;
 
-  private AuthId(String value) {
+  private UserId(String value) {
     validate(value);
     this.value = value;
   }
 
-  public static AuthId of(String value) {
-    return new AuthId(value);
+  public static UserId of(String value) {
+    return new UserId(value);
   }
 
-  public static AuthId generate() {
-    return new AuthId(UUID.randomUUID().toString());
+  public static UserId generate() {
+    return new UserId(UUID.randomUUID().toString());
   }
 
   private void validate(String value) {
     if (value == null || value.isBlank()) {
-      throw new IllegalArgumentException("AuthId cannot be null or empty");
+      throw new IllegalArgumentException("UserId cannot be null or empty");
     }
 
     try {
       UUID.fromString(value);
-    } catch (IllegalArgumentException e) {
-      throw new IllegalArgumentException("AuthId must be a valid UUID format: " + value);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Invalid UUID format: " + value);
     }
   }
 

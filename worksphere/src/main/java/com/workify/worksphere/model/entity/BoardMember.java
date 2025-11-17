@@ -1,6 +1,7 @@
 package com.workify.worksphere.model.entity;
 
 import com.workify.worksphere.model.enums.BoardRole;
+import com.workify.worksphere.model.value.BoardMemberId;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,14 +18,13 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class BoardMember {
 
-  @Id
-  @Column(name = "board_member_id", updatable = false, nullable = false)
-  private String boardMemberId;
+  @EmbeddedId
+  private BoardMemberId boardMemberId;
 
   @PrePersist
-  private void prePersist() {
+  private void generateId() {
     if (this.boardMemberId == null) {
-      this.boardMemberId = java.util.UUID.randomUUID().toString();
+      this.boardMemberId = BoardMemberId.generate();
     }
   }
 
