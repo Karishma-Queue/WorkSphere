@@ -1,6 +1,7 @@
 package com.workify.worksphere.model.entity;
 
 import com.workify.worksphere.model.enums.Status;
+import com.workify.worksphere.model.value.BoardRequestId;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -16,39 +17,46 @@ import java.time.LocalDateTime;
 @Builder
 @Entity
 public class BoardRequest {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private String boardRequestId;
 
-    @Column(name="board_request_name", nullable = false, unique = true)
-    private String boardRequestName;
+  @EmbeddedId
+  private BoardRequestId boardRequestId;
 
-    @Column(name="board_request_key", nullable = false, unique = true)
-    private String boardRequestKey;
+  @Column(name = "board_request_name", nullable = false, unique = true)
+  private String boardRequestName;
 
-    @Column(nullable = false)
-    private String description;
+  @Column(name = "board_request_key", nullable = false, unique = true)
+  private String boardRequestKey;
 
-    private String justification;
+  @Column(nullable = false)
+  private String description;
 
-    @Enumerated(EnumType.STRING)
-    @Builder.Default
-    @Column(nullable = false)
-    private Status status = Status.PENDING;
+  private String justification;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime requestedAt;
+  @Enumerated(EnumType.STRING)
+  @Builder.Default
+  @Column(nullable = false)
+  private Status status = Status.PENDING;
 
-    @ManyToOne
-    @JoinColumn(name="requester_id", nullable = false)
-    private User requester;
+  @CreationTimestamp
+  @Column(nullable = false, updatable = false)
+  private LocalDateTime requestedAt;
 
-    @ManyToOne
-    @JoinColumn(name="reviewer_id")
-    private User reviewedBy;
+  @ManyToOne
+  @JoinColumn(name = "requester_id", nullable = false)
+  private User requester;
 
-    private LocalDateTime rejectedAt;
-    private LocalDateTime approvedAt;
-    private String rejectionReason;
+  @ManyToOne
+  @JoinColumn(name = "reviewer_id")
+  private User reviewedBy;
+
+  private LocalDateTime rejectedAt;
+  private LocalDateTime approvedAt;
+  private String rejectionReason;
+
+  @PrePersist
+  public void generateId() {
+    if (this.boardRequestId == null) {
+      this.boardRequestId = BoardRequestId.generate();
+    }
+  }
 }

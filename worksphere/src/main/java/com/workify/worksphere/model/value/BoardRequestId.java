@@ -12,32 +12,32 @@ import java.util.UUID;
 @Getter
 @NoArgsConstructor
 @EqualsAndHashCode
-public class BoardId {
+public class BoardRequestId {
 
-  @Column(name = "board_id")
+  @Column(name = "board_request_id")
   private String value;
 
-  private BoardId(String value) {
+  private BoardRequestId(String value) {
     validate(value);
     this.value = value;
   }
 
-  public static BoardId of(String value) {
-    return new BoardId(value);
+  public static BoardRequestId of(String value) {
+    return new BoardRequestId(value);
   }
 
-  public static BoardId generate() {
-    return new BoardId(UUID.randomUUID().toString());
+  public static BoardRequestId generate() {
+    return new BoardRequestId(UUID.randomUUID().toString());
   }
 
   private void validate(String value) {
     if (value == null || value.isBlank()) {
-      throw new IllegalArgumentException("BoardId cannot be null or empty");
+      throw new IllegalArgumentException("BoardRequestId cannot be null or empty");
     }
     try {
       UUID.fromString(value);
     } catch (Exception e) {
-      throw new IllegalArgumentException("BoardId must be a valid UUID: " + value);
+      throw new IllegalArgumentException("BoardRequestId must be a valid UUID: " + value);
     }
   }
 

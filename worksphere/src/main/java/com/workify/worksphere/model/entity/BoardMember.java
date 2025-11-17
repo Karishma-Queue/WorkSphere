@@ -16,25 +16,32 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BoardMember {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "board_member_id")
-    private String boardMemberId;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+  @Id
+  @Column(name = "board_member_id", updatable = false, nullable = false)
+  private String boardMemberId;
 
-    @ManyToOne
-    @JoinColumn(name = "board_id", nullable = false)
-    private Board board;
+  @PrePersist
+  private void prePersist() {
+    if (this.boardMemberId == null) {
+      this.boardMemberId = java.util.UUID.randomUUID().toString();
+    }
+  }
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "board_role")
-    @Builder.Default
-    private BoardRole boardRole = BoardRole.PROJECT_MEMBER;
+  @ManyToOne
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
 
-    @CreationTimestamp
-    @Column(name = "joined_at", nullable = false, updatable = false)
-    private LocalDateTime joinedAt;
+  @ManyToOne
+  @JoinColumn(name = "board_id", nullable = false)
+  private Board board;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "board_role", nullable = false)
+  @Builder.Default
+  private BoardRole boardRole = BoardRole.PROJECT_MEMBER;
+
+  @CreationTimestamp
+  @Column(name = "joined_at", nullable = false, updatable = false)
+  private LocalDateTime joinedAt;
 }

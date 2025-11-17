@@ -15,7 +15,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class AuthId implements Serializable {
 
-  @Column(name = "auth_id", length = 36)
+  @Column(name = "auth_id")
   private String value;
 
   private AuthId(String value) {
