@@ -1,11 +1,9 @@
 package com.workify.worksphere.model.entity;
 
 import com.workify.worksphere.model.enums.BoardStatus;
+import com.workify.worksphere.model.value.BoardId;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -16,30 +14,36 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Board {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(name = "board_id")
-    private String boardId;
 
-    @Column(name = "board_name", nullable = false)
-    private String boardName;
+  @EmbeddedId
+  private BoardId boardId;
 
-    @Column(name = "board_key", nullable = false)
-    private String boardKey;
+  @Column(name = "board_name", nullable = false)
+  private String boardName;
 
-    @Column(nullable = false)
-    private String description;
+  @Column(name = "board_key", nullable = false)
+  private String boardKey;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "board_status")
-    @Builder.Default
-    private BoardStatus boardStatus = BoardStatus.ACTIVE;
+  @Column(nullable = false)
+  private String description;
 
-    @CreationTimestamp
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+  @Enumerated(EnumType.STRING)
+  @Column(name = "board_status")
+  @Builder.Default
+  private BoardStatus boardStatus = BoardStatus.ACTIVE;
 
-    @ManyToOne
-    @JoinColumn(name = "created_by", nullable = false)
-    private User createdBy;
+  @CreationTimestamp
+  @Column(name = "created_at")
+  private LocalDateTime createdAt;
+
+  @ManyToOne
+  @JoinColumn(name = "created_by", nullable = false)
+  private User createdBy;
+
+  @PrePersist
+  public void generateId() {
+    if (this.boardId == null) {
+      this.boardId = BoardId.generate();
+    }
+  }
 }
