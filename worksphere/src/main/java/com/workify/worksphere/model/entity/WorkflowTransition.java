@@ -1,5 +1,6 @@
 package com.workify.worksphere.model.entity;
 
+import com.workify.worksphere.model.value.WorkflowTransitionId;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,23 +15,30 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 public class WorkflowTransition {
-    @Id
-    @GeneratedValue(strategy= GenerationType.UUID)
-    private String workTransitionId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="workflow_id", nullable = false)
-    Workflow workflow;
+  @EmbeddedId
+  private WorkflowTransitionId workTransitionId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="from_status")
-    private WorkflowStatus fromStatus;
+  @PrePersist
+  private void prePersist() {
+    if (this.workTransitionId == null) {
+      this.workTransitionId = WorkflowTransitionId.generate();
+    }
+  }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="to_status")
-    private WorkflowStatus toStatus;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "workflow_id", nullable = false)
+  private Workflow workflow;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @Column(name = "role")
-    private Set<String> allowedRoles;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "from_status")
+  private WorkflowStatus fromStatus;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "to_status")
+  private WorkflowStatus toStatus;
+
+  @ElementCollection(fetch = FetchType.EAGER)
+  @Column(name = "role")
+  private Set<String> allowedRoles;
 }
