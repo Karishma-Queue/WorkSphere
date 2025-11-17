@@ -6,31 +6,39 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.workify.worksphere.model.value.WorkflowStatusId;
 
 @Entity
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class WorkflowStatus {
-    @Id
-    @GeneratedValue(strategy= GenerationType.UUID)
-    private String statusId;
 
-    @ManyToOne
-    @JoinColumn(name = "workflow_id", nullable = false)
-    Workflow workflow;
+  @EmbeddedId
+  private WorkflowStatusId statusId;
 
-    @Column(name = "status_name", nullable = false)
-    private String statusName;
+  @PrePersist
+  private void prePersist() {
+    if (this.statusId == null) {
+      this.statusId = WorkflowStatusId.generate();
+    }
+  }
 
-    @Column(name = "started", nullable = false)
-    private Boolean started = false;
+  @ManyToOne
+  @JoinColumn(name = "workflow_id", nullable = false)
+  private Workflow workflow;
 
-    @Column(name = "ended", nullable = false)
-    private Boolean ended = false;
+  @Column(name = "status_name", nullable = false)
+  private String statusName;
 
-    @Column(name = "is_initial", nullable = false)
-    @Builder.Default
-    private Boolean isInitial = false;
+  @Column(nullable = false)
+  private Boolean started = false;
+
+  @Column(nullable = false)
+  private Boolean ended = false;
+
+  @Builder.Default
+  @Column(name = "is_initial", nullable = false)
+  private Boolean isInitial = false;
 }
