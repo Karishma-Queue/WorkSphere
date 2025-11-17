@@ -1,7 +1,9 @@
 package com.workify.worksphere.model.entity;
 
+import com.workify.worksphere.model.value.AuthId;
 import com.workify.worksphere.model.value.Email;
-import com.workify.worksphere.model.valueobject.Email;
+import com.workify.worksphere.model.value.AuthId;
+import com.workify.worksphere.model.value.Email;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,10 +16,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Auth {
-  @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
-  @Column(name = "auth_id")
-  private String authId;
+  @EmbeddedId
+  private AuthId authId;
 
   @Embedded
   @AttributeOverride(name = "email", column = @Column(name = "email", nullable = false, unique = true))
@@ -29,4 +29,11 @@ public class Auth {
   @OneToOne
   @JoinColumn(name = "user_id")
   private User user;
+
+  @PrePersist
+  public void generateId() {
+    if (this.authId == null) {
+      this.authId = AuthId.generate();
+    }
+  }
 }
