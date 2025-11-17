@@ -2,6 +2,9 @@ package com.workify.worksphere;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+
+@EnableConfigurationProperties(CloudinaryProps.class)
 
 @SpringBootApplication
 public class WorkSphereApplication {
