@@ -80,6 +80,10 @@ public class Issue {
   @JoinColumn(name = "parent_id")
   private Issue parent;
 
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "sprint_id")
+  private Sprint sprint;
+
   @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Issue> subtasks;
 
