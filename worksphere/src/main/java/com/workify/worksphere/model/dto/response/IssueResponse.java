@@ -1,5 +1,8 @@
 package com.workify.worksphere.model.dto.response;
 
+import com.workify.worksphere.model.entity.User;
+import com.workify.worksphere.model.value.IssueId;
+import com.workify.worksphere.model.value.UserId;
 import lombok.Builder;
 import lombok.Data;
 
@@ -10,7 +13,7 @@ import java.time.LocalDateTime;
 @Builder
 public class IssueResponse {
 
-    private String issueId;
+    private IssueId issueId;
     private String summary;
     private String description;
 
@@ -26,12 +29,12 @@ public class IssueResponse {
     private LocalDateTime updatedAt;
     private LocalDateTime resolvedAt;
 
-    private String reporterId;
+    private UserId reporterId;
     private String reporterName;
 
-    private String assigneeId;
+    private UserId assigneeId;
     private String assigneeName;
 
-    private String parentId;     // If this is subtask
-    private String epicId;       // If linked to epic
+    private IssueId parentId;     // If this is subtask
+    private IssueId epicId;       // If linked to epic
 }

@@ -2,6 +2,7 @@ package com.workify.worksphere.service.impl;
 
 import com.workify.worksphere.exception.AuthenticationException;
 import com.workify.worksphere.exception.BadRequestException;
+import com.workify.worksphere.exception.BoardRequestException;
 import com.workify.worksphere.exception.NotFoundException;
 import com.workify.worksphere.model.dto.request.CreateIssueDTO;
 import com.workify.worksphere.model.dto.request.UpdateIssueDTO;
@@ -10,13 +11,16 @@ import com.workify.worksphere.model.entity.Auth;
 import com.workify.worksphere.model.entity.Board;
 import com.workify.worksphere.model.entity.BoardMember;
 import com.workify.worksphere.model.entity.Issue;
+import com.workify.worksphere.model.entity.Sprint;
 import com.workify.worksphere.model.entity.User;
 import com.workify.worksphere.model.entity.Workflow;
 import com.workify.worksphere.model.entity.WorkflowStatus;
+import com.workify.worksphere.model.enums.SprintStatus;
 import com.workify.worksphere.repository.AuthRepository;
 import com.workify.worksphere.repository.BoardMemberRepository;
 import com.workify.worksphere.repository.BoardRepository;
 import com.workify.worksphere.repository.IssueRepository;
+import com.workify.worksphere.repository.SprintRepository;
 import com.workify.worksphere.repository.WorkflowRepository;
 import com.workify.worksphere.repository.WorkflowStatusRepository;
 import com.workify.worksphere.service.IssueService;
@@ -36,6 +40,7 @@ public class IssueServiceImpl implements IssueService {
   private final WorkflowStatusRepository workflowStatusRepository;
   private final WorkflowRepository workflowRepository;
   private final IssueRepository issueRepository;
+  private final SprintRepository sprintRepository;
   @Override
   public IssueResponse createIssue(String boardId, CreateIssueDTO request) {
 
@@ -183,11 +188,38 @@ public class IssueServiceImpl implements IssueService {
         .build();
   }
   @Override
-  public List<Issue> getBacklogIssues(String BoardId)
+  public List<Issue> getBacklogIssues(String boardId)
   {
-    List<Issue> backlogs=issueRepository.findByBoard_BoardIdAndSprintIsNull(BoardId);
+    List<Issue> backlogs=issueRepository.findByBoard_BoardIdAndSprintIsNull(boardId);
     return backlogs;
   }
-  @PatchMapping("")
+ @Override
+  public IssueResponse moveToSprint(String issueId,String sprintId)
+ {
+  Issue issue =issueRepository.findByIssueId(issueId)
+      .orElseThrow(()->new NotFoundException("No issue id exists with id "+issueId));
+  Board board=issue.getBoard();
+  if(issue.getSprint()!=null)
+  {
+     throw new BadRequestException("Issue already in another sprint");
+  }
+  Sprint sprint=sprintRepository.findBySprintId(sprintId)
+      .orElseThrow(()->new NotFoundException("No sprint exists with this id "+sprintId));
+  if(!sprint.getBoard().equals(board))
+  {
+    throw new BadRequestException("Issue and Sprint do not belong to the same board ");
+  }
+  if(sprint.getStatus()== SprintStatus.COMPLETED)
+  {
+    throw new BoardRequestException("Sprint has already been completed");
+
+  }
+  issue.setSprint(sprint);
+  Issue saved = issueRepository.save(issue);
+   return mapToIssueResponse(saved);
+
+
+ }
+
 
 }

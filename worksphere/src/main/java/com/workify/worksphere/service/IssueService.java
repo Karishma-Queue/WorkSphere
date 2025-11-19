@@ -22,4 +22,5 @@ public interface IssueService {
   void deleteIssue(String boardId, String issueId);
   IssueResponse changeIssueStatus(String boardId, String issueId, String statusId);
   public List<Issue> getBacklogIssues(String BoardId);
+  IssueResponse moveToSprint(String issueId,String sprintId);
 }

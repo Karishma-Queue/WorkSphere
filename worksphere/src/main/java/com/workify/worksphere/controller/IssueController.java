@@ -79,6 +79,7 @@ public class IssueController {
         IssueResponse response = issueService.changeIssueStatus(boardId, issueId, statusId);
         return ResponseEntity.ok(response);
     }
+
     @PatchMapping("/{issueId}/move-to-sprint/{sprintId}")
     public IssueResponse moveToSprint(@PathVariable String issueId,@PathVariable String sprintId)
     {
