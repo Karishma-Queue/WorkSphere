@@ -18,6 +18,7 @@ import com.workify.worksphere.model.entity.User;
 import com.workify.worksphere.model.entity.Workflow;
 import com.workify.worksphere.model.entity.WorkflowStatus;
 import com.workify.worksphere.model.enums.SprintStatus;
+import com.workify.worksphere.model.value.BoardId;
 import com.workify.worksphere.model.value.SprintId;
 import com.workify.worksphere.repository.AuthRepository;
 import com.workify.worksphere.repository.BoardMemberRepository;
@@ -27,6 +28,8 @@ import com.workify.worksphere.repository.SprintRepository;
 import com.workify.worksphere.repository.WorkflowRepository;
 import com.workify.worksphere.repository.WorkflowStatusRepository;
 import com.workify.worksphere.service.IssueService;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -318,5 +321,49 @@ public class IssueServiceImpl implements IssueService {
                     .build())
         .toList();
   }
-  public 
+  public Sprint completeSprint(String sprintId,String boardId)
+  {
+    Board board=boardRepository
+        .findByBoardId(boardId)
+        .orElseThrow(()->new NotFoundException("No board exists with this id "+boardId));
+    Sprint sprint=sprintRepository
+        .findBySprintId(sprintId)
+        .orElseThrow(()-> new NotFoundException("No sprint exists with this id "+sprintId));
+    if(!sprint.getBoard().equals(board))
+    {
+      throw new BadRequestException("This sprint does not belong to this board");
+
+    }
+    List<Issue> sprintIssues = issueRepository.findBySprint(sprint);
+
+    // 5. Separate completed and incomplete issues
+    List<Issue> incompleteIssues = new ArrayList<>();
+    List<Issue> completedIssues = new ArrayList<>();
+
+    for (Issue issue : sprintIssues) {
+      if (issue.getStatus().getIsFinal()) {
+        completedIssues.add(issue);
+      } else {
+        incompleteIssues.add(issue);
+      }
+    }
+
+    for (Issue issue : incompleteIssues) {
+      issue.setSprint(null);
+    }
+
+    if (!incompleteIssues.isEmpty()) {
+      issueRepository.saveAll(incompleteIssues);
+    }
+
+    sprint.setStatus(SprintStatus.COMPLETED);
+    sprint.setCompletedAt(LocalDateTime.now());
+
+    return sprintRepository.save(sprint);
+  }
+
+
+
+
+}
 }
