@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface SprintRepository extends JpaRepository<Sprint,String> {
   Optional<Sprint> findBySprintId(String sprintId);
+  Optional<Sprint> findBySprintName(String name);
 }

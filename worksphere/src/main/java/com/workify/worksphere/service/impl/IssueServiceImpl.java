@@ -5,8 +5,10 @@ import com.workify.worksphere.exception.BadRequestException;
 import com.workify.worksphere.exception.BoardRequestException;
 import com.workify.worksphere.exception.NotFoundException;
 import com.workify.worksphere.model.dto.request.CreateIssueDTO;
+import com.workify.worksphere.model.dto.request.CreateSprintDTO;
 import com.workify.worksphere.model.dto.request.UpdateIssueDTO;
 import com.workify.worksphere.model.dto.response.IssueResponse;
+import com.workify.worksphere.model.dto.response.SprintResponse;
 import com.workify.worksphere.model.entity.Auth;
 import com.workify.worksphere.model.entity.Board;
 import com.workify.worksphere.model.entity.BoardMember;
@@ -16,6 +18,7 @@ import com.workify.worksphere.model.entity.User;
 import com.workify.worksphere.model.entity.Workflow;
 import com.workify.worksphere.model.entity.WorkflowStatus;
 import com.workify.worksphere.model.enums.SprintStatus;
+import com.workify.worksphere.model.value.SprintId;
 import com.workify.worksphere.repository.AuthRepository;
 import com.workify.worksphere.repository.BoardMemberRepository;
 import com.workify.worksphere.repository.BoardRepository;
@@ -25,6 +28,7 @@ import com.workify.worksphere.repository.WorkflowRepository;
 import com.workify.worksphere.repository.WorkflowStatusRepository;
 import com.workify.worksphere.service.IssueService;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -220,6 +224,46 @@ public class IssueServiceImpl implements IssueService {
 
 
  }
+ @Override
+public SprintResponse createSprint(CreateSprintDTO request,String boardId)
+{
+  Authentication authentication=SecurityContextHolder.getContext().getAuthentication();
+  Auth auth=authRepository.findByEmail(authentication.getName())
+      .orElseThrow(()->new AuthenticationException("User not authenticated"));
+  User user=auth.getUser();
+  if(request.getName()==null)
+  {
+    throw new BadRequestException("Name cannot be empty");
+  }
+  if(request.getStartDate()==null)
+  {
+    throw new BadRequestException("Start date cannot be empty");
+  }
+  if(request.getEndDate()==null)
+  {
+    throw new BadRequestException("End date cannot be empty");
+  }
+  Board board=boardRepository.findByBoardId(boardId)
+      .orElseThrow(()-> new BadRequestException("No board exists with id"+boardId));
+  Sprint sprint=sprintRepository.findBySprintName(request.getName())
+      .orElseThrow(()->new BadRequestException("Sprint already exists with this name"));
+  Sprint newSprint=Sprint.builder()
+      .sprintName(request.getName())
+      .startDate(request.getStartDate())
+      .endDate(request.getEndDate())
+      .createdBy(user)
+      .sprintId(SprintId.generate())
+      .build();
+  sprintRepository.save(newSprint);
+  SprintResponse response=SprintResponse.builder()
+      .sprintId(newSprint.getSprintId().toString())
+      .startDate(newSprint.getStartDate())
+      .endDate(newSprint.getEndDate())
+      .boardId(newSprint.getBoard().getBoardId().toString())
+      .springName(newSprint.getSprintName().toString())
+      .build();
+  return response;
 
+}
 
 }

@@ -2,8 +2,10 @@ package com.workify.worksphere.service;
 
 import com.workify.worksphere.exception.*;
 import com.workify.worksphere.model.dto.request.CreateIssueDTO;
+import com.workify.worksphere.model.dto.request.CreateSprintDTO;
 import com.workify.worksphere.model.dto.request.UpdateIssueDTO;
 import com.workify.worksphere.model.dto.response.IssueResponse;
+import com.workify.worksphere.model.dto.response.SprintResponse;
 import com.workify.worksphere.model.entity.*;
 import com.workify.worksphere.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -23,4 +25,5 @@ public interface IssueService {
   IssueResponse changeIssueStatus(String boardId, String issueId, String statusId);
   public List<Issue> getBacklogIssues(String BoardId);
   IssueResponse moveToSprint(String issueId,String sprintId);
+  SprintResponse createSprint(CreateSprintDTO request,String boardId);
 }

@@ -1,8 +1,10 @@
 package com.workify.worksphere.controller;
 
 import com.workify.worksphere.model.dto.request.CreateIssueDTO;
+import com.workify.worksphere.model.dto.request.CreateSprintDTO;
 import com.workify.worksphere.model.dto.request.UpdateIssueDTO;
 import com.workify.worksphere.model.dto.response.IssueResponse;
+import com.workify.worksphere.model.dto.response.SprintResponse;
 import com.workify.worksphere.model.entity.Issue;
 import com.workify.worksphere.security.annotation.AllowOnlyProjAdmin;
 import com.workify.worksphere.security.annotation.BoardIdParam;
@@ -90,6 +92,9 @@ public class IssueController {
       return issueService.moveToSprint(issueId,sprintId);
     }
     @PostMapping("/sprint")
-  public SprintResponse
+  public SprintResponse createSprint(@RequestBody CreateSprintDTO request,@PathVariable String boardId)
+    {
+      return issueService.createSprint(request,boardId);
+    }
 
 }

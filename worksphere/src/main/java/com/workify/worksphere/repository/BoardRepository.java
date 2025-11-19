@@ -1,6 +1,7 @@
 package com.workify.worksphere.repository;
 
 import com.workify.worksphere.model.entity.Board;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,5 +17,5 @@ public interface BoardRepository extends JpaRepository<Board, String> {
            OR LOWER(b.description) LIKE LOWER(CONCAT('%', :query, '%'))
            """)
     List<Board> searchBoards(@Param("query") String query);
-
+    Optional<Board> findByBoardId(String BoardId);
 }
