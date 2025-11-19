@@ -265,6 +265,12 @@ public SprintResponse createSprint(CreateSprintDTO request,String boardId)
   return response;
 
 }
+public  List<SprintResponse> allSprint(String boardId)
+{
+  Board board=boardRepository.findByBoardId(boardId)
+      .orElseThrow(()->new NotFoundException("No board exists with this id "+boardId));
+  List<Sprint>=sprintRepository.findByBoard_BoardId(boardId);
+}
 
 
 }
