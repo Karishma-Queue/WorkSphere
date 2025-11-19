@@ -258,51 +258,7 @@ public class IssueServiceImpl implements IssueService {
     return mapToIssueResponse(saved);
   }
 
-  @Override
-  public SprintResponse createSprint(CreateSprintDTO request, String boardId) {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    Auth auth =
-        authRepository
-            .findByEmail(authentication.getName())
-            .orElseThrow(() -> new AuthenticationException("User not authenticated"));
-    User user = auth.getUser();
-    if (request.getName() == null) {
-      throw new BadRequestException("Name cannot be empty");
-    }
-    if (request.getStartDate() == null) {
-      throw new BadRequestException("Start date cannot be empty");
-    }
-    if (request.getEndDate() == null) {
-      throw new BadRequestException("End date cannot be empty");
-    }
-    Board board =
-        boardRepository
-            .findByBoardId(boardId)
-            .orElseThrow(() -> new BadRequestException("No board exists with id" + boardId));
-    Sprint sprint =
-        sprintRepository
-            .findBySprintName(request.getName())
-            .orElseThrow(() -> new BadRequestException("Sprint already exists with this name"));
-    Sprint newSprint =
-        Sprint.builder()
-            .sprintName(request.getName())
-            .startDate(request.getStartDate())
-            .endDate(request.getEndDate())
-            .createdBy(user)
-            .sprintId(SprintId.generate())
-            .build();
-    sprintRepository.save(newSprint);
-    SprintResponse response =
-        SprintResponse.builder()
-            .sprintId(newSprint.getSprintId().toString())
-            .startDate(newSprint.getStartDate())
-            .endDate(newSprint.getEndDate())
-            .boardId(newSprint.getBoard().getBoardId().toString())
-            .springName(newSprint.getSprintName().toString())
-            .build();
-    return response;
-  }
-
+@Override
   public List<SprintResponse> allSprint(String boardId) {
     Board board =
         boardRepository
@@ -321,47 +277,108 @@ public class IssueServiceImpl implements IssueService {
                     .build())
         .toList();
   }
-  public Sprint completeSprint(String sprintId,String boardId)
-  {
-    Board board=boardRepository
-        .findByBoardId(boardId)
-        .orElseThrow(()->new NotFoundException("No board exists with this id "+boardId));
-    Sprint sprint=sprintRepository
-        .findBySprintId(sprintId)
-        .orElseThrow(()-> new NotFoundException("No sprint exists with this id "+sprintId));
-    if(!sprint.getBoard().equals(board))
-    {
-      throw new BadRequestException("This sprint does not belong to this board");
+  @Override
+  public SprintResponse createSprint(CreateSprintDTO request, String boardId) {
+    // Get authenticated user
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    Auth auth = authRepository
+        .findByEmail(authentication.getName())
+        .orElseThrow(() -> new AuthenticationException("User not authenticated"));
+    User user = auth.getUser();
 
+    // Validations
+    if (request.getName() == null || request.getName().trim().isEmpty()) {
+      throw new BadRequestException("Name cannot be empty");
     }
+    if (request.getStartDate() == null) {
+      throw new BadRequestException("Start date cannot be empty");
+    }
+    if (request.getEndDate() == null) {
+      throw new BadRequestException("End date cannot be empty");
+    }
+    if (request.getEndDate().isBefore(request.getStartDate())) {
+      throw new BadRequestException("End date must be after start date");
+    }
+
+    // Get board
+    Board board = boardRepository
+        .findByBoardId(boardId)
+        .orElseThrow(() -> new NotFoundException("No board exists with id " + boardId));
+
+    // ✅ Check if sprint name already exists in this board
+    boolean exists = sprintRepository.existsByBoardAndSprintName(board, request.getName());
+    if (exists) {
+      throw new BadRequestException("Sprint with name '" + request.getName() + "' already exists in this board");
+    }
+
+    // Create sprint
+    Sprint newSprint = Sprint.builder()
+        .sprintName(request.getName())
+        .startDate(request.getStartDate())
+        .endDate(request.getEndDate())
+        .createdBy(user)
+        .board(board)  // ✅ IMPORTANT!
+        .sprintStatus(SprintStatus.PLANNED)  // ✅ IMPORTANT!
+        .build();
+
+    Sprint saved = sprintRepository.save(newSprint);
+
+    // Build response
+    return SprintResponse.builder()
+        .sprintId(saved.getSprintId().getId())
+        .springName(saved.getSprintName())
+        .startDate(saved.getStartDate())
+        .endDate(saved.getEndDate())
+        .boardId(saved.getBoard().getBoardId().getId())
+        .sprintStatus(saved.getSprintStatus())
+        .createdBy(saved.getCreatedBy().getUserName())
+        .createdAt(saved.getCreatedAt())
+        .build();
+  }
+
+  @Override
+  public Sprint completeSprint(String sprintId, String boardId) {
+    Board board = boardRepository
+        .findByBoardId(boardId)
+        .orElseThrow(() -> new NotFoundException("No board exists with this id " + boardId));
+
+    Sprint sprint = sprintRepository
+        .findBySprintId(sprintId)
+        .orElseThrow(() -> new NotFoundException("No sprint exists with this id " + sprintId));
+
+    if (!sprint.getBoard().equals(board)) {
+      throw new BadRequestException("This sprint does not belong to this board");
+    }
+
+    if (sprint.getStatus() != SprintStatus.ACTIVE) {
+      throw new BadRequestException("Only active sprints can be completed");
+    }
+
+    // Get all issues in sprint
     List<Issue> sprintIssues = issueRepository.findBySprint(sprint);
 
-    // 5. Separate completed and incomplete issues
+    // Separate completed and incomplete issues
     List<Issue> incompleteIssues = new ArrayList<>();
-    List<Issue> completedIssues = new ArrayList<>();
 
     for (Issue issue : sprintIssues) {
-      if (issue.getStatus().getIsFinal()) {
-        completedIssues.add(issue);
-      } else {
+      if (!issue.getStatus().getIsFinal()) {
         incompleteIssues.add(issue);
+        issue.setSprint(null);  // Move back to backlog
       }
     }
 
-    for (Issue issue : incompleteIssues) {
-      issue.setSprint(null);
-    }
-
+    // Save incomplete issues
     if (!incompleteIssues.isEmpty()) {
       issueRepository.saveAll(incompleteIssues);
     }
 
+    // Complete sprint
     sprint.setStatus(SprintStatus.COMPLETED);
     sprint.setCompletedAt(LocalDateTime.now());
 
     return sprintRepository.save(sprint);
   }
-
+  @Override
 public Sprint startSprint(String sprintId,String boardId)
 {
   Board board = boardRepository

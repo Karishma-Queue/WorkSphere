@@ -26,4 +26,7 @@ public interface IssueService {
   public List<Issue> getBacklogIssues(String BoardId);
   IssueResponse moveToSprint(String issueId,String sprintId);
   SprintResponse createSprint(CreateSprintDTO request,String boardId);
+  Sprint startSprint(String sprintId,String boardId);
+  List<SprintResponse> allSprint(String boardId);
+  Sprint completeSprint(String sprintId, String boardId);
 }
