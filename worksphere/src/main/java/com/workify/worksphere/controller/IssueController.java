@@ -79,10 +79,17 @@ public class IssueController {
         IssueResponse response = issueService.changeIssueStatus(boardId, issueId, statusId);
         return ResponseEntity.ok(response);
     }
-
-    @PatchMapping("/{issueId}/move-to-sprint/{sprintId}")
+ @GetMapping
+ public List<Issue> getBacklogIssues(@PathVariable String boardId)
+ {
+   return issueService.getBacklogIssues(boardId);
+ }
+    @PatchMapping("/{issueId}/sprint/{sprintId}")
     public IssueResponse moveToSprint(@PathVariable String issueId,@PathVariable String sprintId)
     {
       return issueService.moveToSprint(issueId,sprintId);
     }
+    @PostMapping("/sprint")
+  public SprintResponse
+
 }
