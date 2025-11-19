@@ -41,4 +41,9 @@ public class WorkflowStatus {
   @Builder.Default
   @Column(name = "is_initial", nullable = false)
   private Boolean isInitial = false;
+  @Builder.Default
+  @Column(name = "is_initial", nullable = false)
+  private Boolean isFinal = false;
+
+
 }
