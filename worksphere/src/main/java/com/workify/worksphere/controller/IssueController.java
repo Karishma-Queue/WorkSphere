@@ -3,6 +3,7 @@ package com.workify.worksphere.controller;
 import com.workify.worksphere.model.dto.request.CreateIssueDTO;
 import com.workify.worksphere.model.dto.request.UpdateIssueDTO;
 import com.workify.worksphere.model.dto.response.IssueResponse;
+import com.workify.worksphere.model.entity.Issue;
 import com.workify.worksphere.security.annotation.AllowOnlyProjAdmin;
 import com.workify.worksphere.security.annotation.BoardIdParam;
 import com.workify.worksphere.security.annotation.IssueIdParam;
@@ -36,7 +37,12 @@ public class IssueController {
         List<IssueResponse> responses = issueService.getAllIssues(boardId);
         return ResponseEntity.ok(responses);
     }
-
+  @AllowOnlyProjAdmin
+  @GetMapping
+  public List<Issue> getBacklog(@PathVariable String boardId)
+  {
+    return issueService.getBacklogIssues(boardId);
+  }
     @AllowOnlyProjAdmin
     @GetMapping("/{issueId}")
     public ResponseEntity<IssueResponse> getIssueById(
@@ -72,5 +78,10 @@ public class IssueController {
             @PathVariable String statusId) {
         IssueResponse response = issueService.changeIssueStatus(boardId, issueId, statusId);
         return ResponseEntity.ok(response);
+    }
+    @PatchMapping("/{issueId}/move-to-sprint/{sprintId}")
+    public IssueResponse moveToSprint(@PathVariable String issueId,@PathVariable String sprintId)
+    {
+      return issueService.moveToSprint(issueId,sprintId);
     }
 }

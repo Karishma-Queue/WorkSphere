@@ -60,34 +60,34 @@ public class Issue {
   @JoinColumn(name="reporter_id", nullable=false)
   private User reporter;
 
-  @ManyToOne(fetch=FetchType.LAZY)
+  @ManyToOne
   @JoinColumn(name="assignee_id")
   private User assignee;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne
   @JoinColumn(name = "board_id", nullable = false)
   private Board board;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne
   @JoinColumn(name = "workflow_id", nullable = false)
   private Workflow workflow;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne
   @JoinColumn(name = "status_id", nullable = false)
   private WorkflowStatus status;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne
   @JoinColumn(name = "parent_id")
   private Issue parent;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne
   @JoinColumn(name = "sprint_id")
   private Sprint sprint;
 
   @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<Issue> subtasks;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne
   @JoinColumn(name = "epic_id")
   private Issue epic;
 

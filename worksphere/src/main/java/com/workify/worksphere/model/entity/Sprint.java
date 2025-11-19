@@ -1,6 +1,7 @@
 package com.workify.worksphere.model.entity;
 
 import com.workify.worksphere.model.enums.SprintStatus;
+import com.workify.worksphere.model.value.SprintId;
 import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
@@ -23,7 +24,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 public class Sprint {
   @EmbeddedId
   private SprintId sprintId;
-  private SprintName sprintName;
+  @Column(nullable = false)
+  private String sprintName;
   @Column(nullable = false)
   private LocalDate startDate;
   @Column(nullable=false)

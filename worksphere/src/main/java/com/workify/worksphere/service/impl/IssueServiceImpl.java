@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PatchMapping;
 
 @Service
 @RequiredArgsConstructor
@@ -181,5 +182,12 @@ public class IssueServiceImpl implements IssueService {
         .epicId(issue.getEpic() != null ? issue.getEpic().getIssueId() : null)
         .build();
   }
+  @Override
+  public List<Issue> getBacklogIssues(String BoardId)
+  {
+    List<Issue> backlogs=issueRepository.findByBoard_BoardIdAndSprintIsNull(BoardId);
+    return backlogs;
+  }
+  @PatchMapping("")
 
 }

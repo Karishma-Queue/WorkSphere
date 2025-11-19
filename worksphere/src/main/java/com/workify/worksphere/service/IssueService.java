@@ -21,4 +21,5 @@ public interface IssueService {
   IssueResponse updateIssue(String boardId, String issueId, UpdateIssueDTO request);
   void deleteIssue(String boardId, String issueId);
   IssueResponse changeIssueStatus(String boardId, String issueId, String statusId);
+  public List<Issue> getBacklogIssues(String BoardId);
 }
