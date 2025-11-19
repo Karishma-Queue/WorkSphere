@@ -96,5 +96,10 @@ public class IssueController {
     {
       return issueService.createSprint(request,boardId);
     }
+    @GetMapping("/all-sprint")
+  public List<SprintResponse> allSprint(@PathVariable String boardId)
+    {
+      return issueService.allSprint(boardId);
+    }
 
 }
