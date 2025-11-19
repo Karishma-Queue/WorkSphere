@@ -362,8 +362,40 @@ public class IssueServiceImpl implements IssueService {
     return sprintRepository.save(sprint);
   }
 
+public Sprint startSprint(String sprintId,String boardId)
+{
+  Board board = boardRepository
+      .findByBoardId(boardId)
+      .orElseThrow(() -> new NotFoundException("No board exists with this id " + boardId));
+  Sprint sprint = sprintRepository
+      .findBySprintId(sprintId)
+      .orElseThrow(() -> new NotFoundException("No sprint exists with this id " + sprintId));
+  if (!sprint.getBoard().equals(board)) {
+    throw new BadRequestException("This sprint does not belong to this board");
+  }
+  if (sprint.getStatus() == SprintStatus.ACTIVE) {
+    throw new BadRequestException("Sprint is already active");
+  }
+  if (sprint.getStatus() == SprintStatus.COMPLETED) {
+    throw new BadRequestException("Cannot start a completed sprint");
+  }
+  boolean hasActiveSprint = sprintRepository
+      .existsByBoardAndSprintStatus(board, SprintStatus.ACTIVE);
+  if (hasActiveSprint) {
+    throw new BadRequestException("Board already has an active sprint. Complete it before starting a new one.");
+  }
+  List<Issue> sprintIssues = issueRepository.findBySprint(sprint);
+  if (sprintIssues.isEmpty()) {
+    throw new BadRequestException("Cannot start sprint with no issues. Add issues first.");
+  }
+  sprint.setStatus(SprintStatus.ACTIVE);
+  sprint.setStartedAt(LocalDateTime.now());
+  return sprintRepository.save(sprint);
 
 
 
 }
+
+
+
 }
