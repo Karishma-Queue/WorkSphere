@@ -1,5 +1,6 @@
 package com.workify.worksphere.model.dto.response;
 
+import com.workify.worksphere.model.enums.SprintStatus;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -19,4 +20,5 @@ public class SprintResponse {
   private LocalDate startDate;
   private LocalDate endDate;
   private String boardId;
+  private SprintStatus sprintStatus;
 }

@@ -6,6 +6,8 @@ import com.workify.worksphere.model.entity.BoardMember;
 import com.workify.worksphere.model.entity.User;
 import com.workify.worksphere.model.entity.Workflow;
 import com.workify.worksphere.model.enums.BoardRole;
+import com.workify.worksphere.model.value.BoardId;
+import com.workify.worksphere.model.value.Email;
 import com.workify.worksphere.repository.AuthRepository;
 import com.workify.worksphere.repository.BoardMemberRepository;
 import com.workify.worksphere.repository.WorkflowRepository;
@@ -70,7 +72,7 @@ public class AllowOnlyProjAdminAspect {
                 final String finalWorkflowId = workflowId;
                 Workflow workflow = workflowRepository.findById(finalWorkflowId)
                         .orElseThrow(() -> new RuntimeException("Workflow not found with id: " + finalWorkflowId));
-                boardId = workflow.getBoard().getBoardId();
+                boardId = workflow.getBoard().getBoardId().getValue();
             }
         }
 
@@ -93,7 +95,7 @@ public class AllowOnlyProjAdminAspect {
         System.out.println("Logged-in email: " +optional.getName());
 
 
-        Auth auth = authRepository.findByEmail(optional.getName())
+        Auth auth = authRepository.findByEmail( Email.of(optional.getName()))
                 .orElseThrow(() -> new AuthenticationException("Authentication failed"));
         User user = auth.getUser();
         if (auth == null) {
@@ -104,7 +106,7 @@ public class AllowOnlyProjAdminAspect {
 
 
         BoardMember boardMember = boardMemberRepository
-                .findByBoard_BoardIdAndBoardRole(boardId, BoardRole.PROJECT_ADMIN)
+                .findByBoard_BoardIdAndBoardRole(BoardId.of(boardId), BoardRole.PROJECT_ADMIN)
                 .orElse(null);
         if (boardMember == null) {
             System.out.println("NO Project Admin found for this board!");

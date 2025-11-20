@@ -35,13 +35,13 @@ public class BoardMemberController {
         return  boardMemberService.removeBoardMember(board_id,board_member_id);
     }
     //getting detail of a project member
-    @AllowOnlyProjAdmin
-    @GetMapping("/{board_id}/member/{board_member_id}")
-    public BoardMemberDetailsDTO getMemberDetails(@BoardIdParam @PathVariable String board_id,
-                                                  @PathVariable String board_member_id)
-    {
-        return boardMemberService.getMemberDetails(board_id,board_member_id);
-    }
+//    @AllowOnlyProjAdmin
+//    @GetMapping("/{board_id}/member/{board_member_id}")
+//    public BoardMemberDetailsDTO getMemberDetails(@BoardIdParam @PathVariable String board_id,
+//                                                  @PathVariable String board_member_id)
+//    {
+//        return boardMemberService.getMemberDetails(board_id,board_member_id);
+//    }
 
     @AllowOnlyProjAdmin
     //getting details of all project member of a board

@@ -19,7 +19,12 @@ import com.workify.worksphere.model.entity.Workflow;
 import com.workify.worksphere.model.entity.WorkflowStatus;
 import com.workify.worksphere.model.enums.SprintStatus;
 import com.workify.worksphere.model.value.BoardId;
+import com.workify.worksphere.model.value.BoardMemberId;
+import com.workify.worksphere.model.value.Email;
+import com.workify.worksphere.model.value.IssueId;
 import com.workify.worksphere.model.value.SprintId;
+import com.workify.worksphere.model.value.UserId;
+import com.workify.worksphere.model.value.WorkflowStatusId;
 import com.workify.worksphere.repository.AuthRepository;
 import com.workify.worksphere.repository.BoardMemberRepository;
 import com.workify.worksphere.repository.BoardRepository;
@@ -31,12 +36,10 @@ import com.workify.worksphere.service.IssueService;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PatchMapping;
 
 @Service
 @RequiredArgsConstructor
@@ -51,74 +54,70 @@ public class IssueServiceImpl implements IssueService {
 
   @Override
   public IssueResponse createIssue(String boardId, CreateIssueDTO request) {
+    BoardId boardIdVO = BoardId.of(boardId);
 
-    Board board =
-        boardRepository
-            .findById(boardId)
-            .orElseThrow(() -> new NotFoundException("No board exists with id " + boardId));
+    Board board = boardRepository
+        .findByBoardId(boardIdVO)
+        .orElseThrow(() -> new NotFoundException("No board exists with id " + boardId));
 
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    Auth auth =
-        authRepository
-            .findByEmail(authentication.getName())
-            .orElseThrow(() -> new AuthenticationException("User not authenticated"));
+    Email email = Email.of(authentication.getName());
+    Auth auth = authRepository
+        .findByEmail(email)
+        .orElseThrow(() -> new AuthenticationException("User not authenticated"));
     User reporter = auth.getUser();
 
-    Workflow workflow =
-        workflowRepository.findByBoard_BoardIdAndIssueType(boardId, request.getIssue_type());
+    Workflow workflow = workflowRepository
+        .findByBoard_BoardIdAndIssueType(boardIdVO, request.getIssue_type());
     if (workflow == null) {
-      workflow =
-          workflowRepository
-              .findByBoard_BoardIdAndIsDefaultTrue(boardId)
-              .orElseThrow(() -> new BadRequestException("No default workflow found"));
+      workflow = workflowRepository
+          .findByBoard_BoardIdAndIsDefaultTrue(boardIdVO)
+          .orElseThrow(() -> new BadRequestException("No default workflow found"));
     }
 
-    WorkflowStatus initialStatus =
-        workflowStatusRepository
-            .findByWorkflow_WorkflowIdAndIsInitialTrue(workflow.getWorkflowId())
-            .orElseThrow(() -> new IllegalStateException("No initial status found"));
+    WorkflowStatus initialStatus = workflowStatusRepository
+        .findByWorkflow_WorkflowIdAndIsInitialTrue(workflow.getWorkflowId())
+        .orElseThrow(() -> new IllegalStateException("No initial status found"));
 
     User assignee = null;
     if (request.getAssignee_id() != null) {
-      BoardMember boardMember =
-          boardMemberRepository
-              .findByBoard_BoardIdAndBoardMemberId(boardId, request.getAssignee_id())
-              .orElseThrow(
-                  () -> new NotFoundException("No member exists in this board with this id"));
+      UserId assigneeUserId = UserId.of(request.getAssignee_id());
+      BoardMember boardMember = boardMemberRepository
+          .findByBoard_BoardIdAndUser_UserId(boardIdVO, assigneeUserId)
+          .orElseThrow(() -> new NotFoundException("No member exists in this board with this id"));
       assignee = boardMember.getUser();
     }
 
     Issue parent = null;
     if (request.getParent_id() != null) {
-      parent =
-          issueRepository
-              .findById(request.getParent_id())
-              .orElseThrow(() -> new NotFoundException("Parent issue not found"));
+      IssueId parentIssueId = IssueId.of(request.getParent_id());
+      parent = issueRepository
+          .findByIssueId(parentIssueId)
+          .orElseThrow(() -> new NotFoundException("Parent issue not found"));
     }
 
     Issue epic = null;
     if (request.getEpic_id() != null) {
-      epic =
-          issueRepository
-              .findById(request.getEpic_id())
-              .orElseThrow(() -> new NotFoundException("Epic issue not found"));
+      IssueId epicIssueId = IssueId.of(request.getEpic_id());
+      epic = issueRepository
+          .findByIssueId(epicIssueId)
+          .orElseThrow(() -> new NotFoundException("Epic issue not found"));
     }
 
-    Issue issue =
-        Issue.builder()
-            .board(board)
-            .reporter(reporter)
-            .workflow(workflow)
-            .status(initialStatus)
-            .issue(request.getIssue_type())
-            .summary(request.getSummary())
-            .priority(request.getPriority())
-            .description(request.getDescription())
-            .assignee(assignee)
-            .parent(parent)
-            .epic(epic)
-            .dueDate(request.getDue_Date())
-            .build();
+    Issue issue = Issue.builder()
+        .board(board)
+        .reporter(reporter)
+        .workflow(workflow)
+        .status(initialStatus)
+        .issue(request.getIssue_type())
+        .summary(request.getSummary())
+        .priority(request.getPriority())
+        .description(request.getDescription())
+        .assignee(assignee)
+        .parent(parent)
+        .epic(epic)
+        .dueDate(request.getDue_Date())
+        .build();
 
     Issue savedIssue = issueRepository.save(issue);
     return mapToIssueResponse(savedIssue);
@@ -126,17 +125,21 @@ public class IssueServiceImpl implements IssueService {
 
   @Override
   public List<IssueResponse> getAllIssues(String boardId) {
-    List<Issue> issues = issueRepository.findByBoard_BoardId(boardId);
+    BoardId boardIdVO = BoardId.of(boardId);
+    List<Issue> issues = issueRepository.findByBoard_BoardId(boardIdVO);
     return issues.stream().map(this::mapToIssueResponse).toList();
   }
 
   @Override
   public IssueResponse getIssueById(String boardId, String issueId) {
-    Issue issue =
-        issueRepository
-            .findById(issueId)
-            .orElseThrow(() -> new NotFoundException("Issue not found"));
-    if (!issue.getBoard().getBoardId().equals(boardId)) {
+    BoardId boardIdVO = BoardId.of(boardId);
+    IssueId issueIdVO = IssueId.of(issueId);
+
+    Issue issue = issueRepository
+        .findByIssueId(issueIdVO)
+        .orElseThrow(() -> new NotFoundException("Issue not found"));
+
+    if (!issue.getBoard().getBoardId().equals(boardIdVO)) {
       throw new BadRequestException("Issue does not belong to this board");
     }
     return mapToIssueResponse(issue);
@@ -144,11 +147,14 @@ public class IssueServiceImpl implements IssueService {
 
   @Override
   public IssueResponse updateIssue(String boardId, String issueId, UpdateIssueDTO request) {
-    Issue issue =
-        issueRepository
-            .findById(issueId)
-            .orElseThrow(() -> new NotFoundException("Issue not found"));
-    if (!issue.getBoard().getBoardId().equals(boardId)) {
+    BoardId boardIdVO = BoardId.of(boardId);
+    IssueId issueIdVO = IssueId.of(issueId);
+
+    Issue issue = issueRepository
+        .findByIssueId(issueIdVO)
+        .orElseThrow(() -> new NotFoundException("Issue not found"));
+
+    if (!issue.getBoard().getBoardId().equals(boardIdVO)) {
       throw new BadRequestException("Issue does not belong to this board");
     }
 
@@ -158,10 +164,10 @@ public class IssueServiceImpl implements IssueService {
     if (request.getDue_date() != null) issue.setDueDate(request.getDue_date());
 
     if (request.getAssignee_id() != null) {
-      BoardMember boardMember =
-          boardMemberRepository
-              .findByBoard_BoardIdAndBoardMemberId(boardId, request.getAssignee_id())
-              .orElseThrow(() -> new NotFoundException("Assignee not found in this board"));
+      UserId assigneeUserId = UserId.of(request.getAssignee_id());
+      BoardMember boardMember = boardMemberRepository
+          .findByBoard_BoardIdAndUser_UserId(boardIdVO, assigneeUserId)
+          .orElseThrow(() -> new NotFoundException("Assignee not found in this board"));
       issue.setAssignee(boardMember.getUser());
     }
 
@@ -171,11 +177,14 @@ public class IssueServiceImpl implements IssueService {
 
   @Override
   public void deleteIssue(String boardId, String issueId) {
-    Issue issue =
-        issueRepository
-            .findById(issueId)
-            .orElseThrow(() -> new NotFoundException("Issue not found"));
-    if (!issue.getBoard().getBoardId().equals(boardId)) {
+    BoardId boardIdVO = BoardId.of(boardId);
+    IssueId issueIdVO = IssueId.of(issueId);
+
+    Issue issue = issueRepository
+        .findByIssueId(issueIdVO)
+        .orElseThrow(() -> new NotFoundException("Issue not found"));
+
+    if (!issue.getBoard().getBoardId().equals(boardIdVO)) {
       throw new BadRequestException("Issue does not belong to this board");
     }
     issueRepository.delete(issue);
@@ -183,18 +192,21 @@ public class IssueServiceImpl implements IssueService {
 
   @Override
   public IssueResponse changeIssueStatus(String boardId, String issueId, String statusId) {
-    Issue issue =
-        issueRepository
-            .findById(issueId)
-            .orElseThrow(() -> new NotFoundException("Issue not found"));
-    if (!issue.getBoard().getBoardId().equals(boardId)) {
+    BoardId boardIdVO = BoardId.of(boardId);
+    IssueId issueIdVO = IssueId.of(issueId);
+    WorkflowStatusId statusIdVO = WorkflowStatusId.of(statusId);
+
+    Issue issue = issueRepository
+        .findByIssueId(issueIdVO)
+        .orElseThrow(() -> new NotFoundException("Issue not found"));
+
+    if (!issue.getBoard().getBoardId().equals(boardIdVO)) {
       throw new BadRequestException("Issue does not belong to this board");
     }
 
-    WorkflowStatus newStatus =
-        workflowStatusRepository
-            .findById(statusId)
-            .orElseThrow(() -> new NotFoundException("Status not found"));
+    WorkflowStatus newStatus = workflowStatusRepository
+        .findByStatusId(statusIdVO)
+        .orElseThrow(() -> new NotFoundException("Status not found"));
 
     if (!newStatus.getWorkflow().getWorkflowId().equals(issue.getWorkflow().getWorkflowId())) {
       throw new BadRequestException("Status does not belong to the same workflow");
@@ -207,7 +219,7 @@ public class IssueServiceImpl implements IssueService {
 
   private IssueResponse mapToIssueResponse(Issue issue) {
     return IssueResponse.builder()
-        .issueId(issue.getIssueId())
+        .issueId(issue.getIssueId().getValue())
         .summary(issue.getSummary())
         .description(issue.getDescription())
         .priority(issue.getPriority().name())
@@ -218,71 +230,81 @@ public class IssueServiceImpl implements IssueService {
         .dueDate(issue.getDueDate())
         .createdAt(issue.getCreatedAt())
         .updatedAt(issue.getUpdatedAt())
-        .reporterId(issue.getReporter().getUserId())
+        .reporterId(issue.getReporter().getUserId().getValue())
         .reporterName(issue.getReporter().getUserName())
-        .assigneeId(issue.getAssignee() != null ? issue.getAssignee().getUserId() : null)
+        .assigneeId(issue.getAssignee() != null ? issue.getAssignee().getUserId().getValue() : null)
         .assigneeName(issue.getAssignee() != null ? issue.getAssignee().getUserName() : null)
-        .parentId(issue.getParent() != null ? issue.getParent().getIssueId() : null)
-        .epicId(issue.getEpic() != null ? issue.getEpic().getIssueId() : null)
+        .parentId(issue.getParent() != null ? issue.getParent().getIssueId().getValue() : null)
+        .epicId(issue.getEpic() != null ? issue.getEpic().getIssueId().getValue() : null)
         .build();
   }
 
   @Override
   public List<Issue> getBacklogIssues(String boardId) {
-    List<Issue> backlogs = issueRepository.findByBoard_BoardIdAndSprintIsNull(boardId);
+    BoardId boardIdVO = BoardId.of(boardId);
+    List<Issue> backlogs = issueRepository.findByBoard_BoardIdAndSprintIsNull(boardIdVO);
     return backlogs;
   }
 
   @Override
   public IssueResponse moveToSprint(String issueId, String sprintId) {
-    Issue issue =
-        issueRepository
-            .findByIssueId(issueId)
-            .orElseThrow(() -> new NotFoundException("No issue id exists with id " + issueId));
+    IssueId issueIdVO = IssueId.of(issueId);
+    SprintId sprintIdVO = SprintId.of(sprintId);
+
+    Issue issue = issueRepository
+        .findByIssueId(issueIdVO)
+        .orElseThrow(() -> new NotFoundException("No issue exists with id " + issueId));
+
     Board board = issue.getBoard();
     if (issue.getSprint() != null) {
       throw new BadRequestException("Issue already in another sprint");
     }
-    Sprint sprint =
-        sprintRepository
-            .findBySprintId(sprintId)
-            .orElseThrow(() -> new NotFoundException("No sprint exists with this id " + sprintId));
-    if (!sprint.getBoard().equals(board)) {
-      throw new BadRequestException("Issue and Sprint do not belong to the same board ");
+
+    Sprint sprint = sprintRepository
+        .findBySprintId(sprintIdVO)
+        .orElseThrow(() -> new NotFoundException("No sprint exists with this id " + sprintId));
+
+    if (!sprint.getBoard().getBoardId().equals(board.getBoardId())) {
+      throw new BadRequestException("Issue and Sprint do not belong to the same board");
     }
+
     if (sprint.getStatus() == SprintStatus.COMPLETED) {
       throw new BoardRequestException("Sprint has already been completed");
     }
+
     issue.setSprint(sprint);
     Issue saved = issueRepository.save(issue);
     return mapToIssueResponse(saved);
   }
 
-@Override
+  @Override
   public List<SprintResponse> allSprint(String boardId) {
-    Board board =
-        boardRepository
-            .findByBoardId(boardId)
-            .orElseThrow(() -> new NotFoundException("No board exists with this id " + boardId));
-    List<Sprint> sprints = sprintRepository.findByBoard_BoardId(boardId);
+    BoardId boardIdVO = BoardId.of(boardId);
+
+    Board board = boardRepository
+        .findByBoardId(boardIdVO)
+        .orElseThrow(() -> new NotFoundException("No board exists with this id " + boardId));
+
+    List<Sprint> sprints = sprintRepository.findByBoard_BoardId(boardIdVO);
     return sprints.stream()
-        .map(
-            sprint ->
-                SprintResponse.builder()
-                    .sprintId(sprint.getSprintId().toString())
-                    .springName(sprint.getSprintName())
-                    .startDate(sprint.getStartDate())
-                    .endDate(sprint.getEndDate())
-                    .boardId(boardId)
-                    .build())
+        .map(sprint -> SprintResponse.builder()
+            .sprintId(sprint.getSprintId().getValue())
+            .springName(sprint.getSprintName())
+            .startDate(sprint.getStartDate())
+            .endDate(sprint.getEndDate())
+            .boardId(boardIdVO.getValue())
+            .sprintStatus(sprint.getStatus())
+            .build())
         .toList();
   }
+
   @Override
   public SprintResponse createSprint(CreateSprintDTO request, String boardId) {
     // Get authenticated user
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    Email email = Email.of(authentication.getName());
     Auth auth = authRepository
-        .findByEmail(authentication.getName())
+        .findByEmail(email)
         .orElseThrow(() -> new AuthenticationException("User not authenticated"));
     User user = auth.getUser();
 
@@ -301,12 +323,13 @@ public class IssueServiceImpl implements IssueService {
     }
 
     // Get board
+    BoardId boardIdVO = BoardId.of(boardId);
     Board board = boardRepository
-        .findByBoardId(boardId)
+        .findByBoardId(boardIdVO)
         .orElseThrow(() -> new NotFoundException("No board exists with id " + boardId));
 
-    // ✅ Check if sprint name already exists in this board
-    boolean exists = sprintRepository.existsByBoardAndSprintName(board, request.getName());
+    // Check if sprint name already exists in this board
+    boolean exists = sprintRepository.existsByBoard_BoardIdAndSprintName(boardIdVO, request.getName());
     if (exists) {
       throw new BadRequestException("Sprint with name '" + request.getName() + "' already exists in this board");
     }
@@ -317,36 +340,37 @@ public class IssueServiceImpl implements IssueService {
         .startDate(request.getStartDate())
         .endDate(request.getEndDate())
         .createdBy(user)
-        .board(board)  // ✅ IMPORTANT!
-        .sprintStatus(SprintStatus.PLANNED)  // ✅ IMPORTANT!
+        .board(board)
+        .status(SprintStatus.PLANNED)
         .build();
 
     Sprint saved = sprintRepository.save(newSprint);
 
     // Build response
     return SprintResponse.builder()
-        .sprintId(saved.getSprintId().getId())
+        .sprintId(saved.getSprintId().getValue())
         .springName(saved.getSprintName())
         .startDate(saved.getStartDate())
         .endDate(saved.getEndDate())
-        .boardId(saved.getBoard().getBoardId().getId())
-        .sprintStatus(saved.getSprintStatus())
-        .createdBy(saved.getCreatedBy().getUserName())
-        .createdAt(saved.getCreatedAt())
+        .boardId(saved.getBoard().getBoardId().getValue())
+        .sprintStatus(saved.getStatus())
         .build();
   }
 
   @Override
   public Sprint completeSprint(String sprintId, String boardId) {
+    BoardId boardIdVO = BoardId.of(boardId);
+    SprintId sprintIdVO = SprintId.of(sprintId);
+
     Board board = boardRepository
-        .findByBoardId(boardId)
+        .findByBoardId(boardIdVO)
         .orElseThrow(() -> new NotFoundException("No board exists with this id " + boardId));
 
     Sprint sprint = sprintRepository
-        .findBySprintId(sprintId)
+        .findBySprintId(sprintIdVO)
         .orElseThrow(() -> new NotFoundException("No sprint exists with this id " + sprintId));
 
-    if (!sprint.getBoard().equals(board)) {
+    if (!sprint.getBoard().getBoardId().equals(boardIdVO)) {
       throw new BadRequestException("This sprint does not belong to this board");
     }
 
@@ -355,7 +379,7 @@ public class IssueServiceImpl implements IssueService {
     }
 
     // Get all issues in sprint
-    List<Issue> sprintIssues = issueRepository.findBySprint(sprint);
+    List<Issue> sprintIssues = issueRepository.findBySprint_SprintId(sprintIdVO);
 
     // Separate completed and incomplete issues
     List<Issue> incompleteIssues = new ArrayList<>();
@@ -378,41 +402,45 @@ public class IssueServiceImpl implements IssueService {
 
     return sprintRepository.save(sprint);
   }
+
   @Override
-public Sprint startSprint(String sprintId,String boardId)
-{
-  Board board = boardRepository
-      .findByBoardId(boardId)
-      .orElseThrow(() -> new NotFoundException("No board exists with this id " + boardId));
-  Sprint sprint = sprintRepository
-      .findBySprintId(sprintId)
-      .orElseThrow(() -> new NotFoundException("No sprint exists with this id " + sprintId));
-  if (!sprint.getBoard().equals(board)) {
-    throw new BadRequestException("This sprint does not belong to this board");
+  public Sprint startSprint(String sprintId, String boardId) {
+    BoardId boardIdVO = BoardId.of(boardId);
+    SprintId sprintIdVO = SprintId.of(sprintId);
+
+    Board board = boardRepository
+        .findByBoardId(boardIdVO)
+        .orElseThrow(() -> new NotFoundException("No board exists with this id " + boardId));
+
+    Sprint sprint = sprintRepository
+        .findBySprintId(sprintIdVO)
+        .orElseThrow(() -> new NotFoundException("No sprint exists with this id " + sprintId));
+
+    if (!sprint.getBoard().getBoardId().equals(boardIdVO)) {
+      throw new BadRequestException("This sprint does not belong to this board");
+    }
+
+    if (sprint.getStatus() == SprintStatus.ACTIVE) {
+      throw new BadRequestException("Sprint is already active");
+    }
+
+    if (sprint.getStatus() == SprintStatus.COMPLETED) {
+      throw new BadRequestException("Cannot start a completed sprint");
+    }
+
+    boolean hasActiveSprint = sprintRepository
+        .existsByBoard_BoardIdAndStatus(boardIdVO, SprintStatus.ACTIVE);
+    if (hasActiveSprint) {
+      throw new BadRequestException("Board already has an active sprint. Complete it before starting a new one.");
+    }
+
+    List<Issue> sprintIssues = issueRepository.findBySprint_SprintId(sprintIdVO);
+    if (sprintIssues.isEmpty()) {
+      throw new BadRequestException("Cannot start sprint with no issues. Add issues first.");
+    }
+
+    sprint.setStatus(SprintStatus.ACTIVE);
+    sprint.setStartedAt(LocalDateTime.now());
+    return sprintRepository.save(sprint);
   }
-  if (sprint.getStatus() == SprintStatus.ACTIVE) {
-    throw new BadRequestException("Sprint is already active");
-  }
-  if (sprint.getStatus() == SprintStatus.COMPLETED) {
-    throw new BadRequestException("Cannot start a completed sprint");
-  }
-  boolean hasActiveSprint = sprintRepository
-      .existsByBoardAndSprintStatus(board, SprintStatus.ACTIVE);
-  if (hasActiveSprint) {
-    throw new BadRequestException("Board already has an active sprint. Complete it before starting a new one.");
-  }
-  List<Issue> sprintIssues = issueRepository.findBySprint(sprint);
-  if (sprintIssues.isEmpty()) {
-    throw new BadRequestException("Cannot start sprint with no issues. Add issues first.");
-  }
-  sprint.setStatus(SprintStatus.ACTIVE);
-  sprint.setStartedAt(LocalDateTime.now());
-  return sprintRepository.save(sprint);
-
-
-
-}
-
-
-
 }

@@ -21,6 +21,8 @@ import com.workify.worksphere.model.entity.WorkflowTransition;
 import com.workify.worksphere.model.value.BoardId;
 import com.workify.worksphere.model.value.Email;
 import com.workify.worksphere.model.value.WorkflowId;
+import com.workify.worksphere.model.value.WorkflowStatusId;
+import com.workify.worksphere.model.value.WorkflowTransitionId;
 import com.workify.worksphere.repository.AuthRepository;
 import com.workify.worksphere.repository.BoardRepository;
 import com.workify.worksphere.repository.WorkflowRepository;
@@ -90,13 +92,13 @@ public class WorkflowServiceImpl implements WorkflowService {
 
   }
   @Override
-  public WorkflowUpdateResponse updateWorkflow(String id, WorkflowUpdateDTO request) {
+  public WorkflowUpdateResponse updateWorkflow(String workflowId, WorkflowUpdateDTO request) {
 
     if (request.getWorkflow_name() == null && request.getIsDefault() == null) {
       throw new BadRequestException("At least one field must be provided for update");
     }
-
-    Workflow workflow = workflowRepository.findById(id)
+  WorkflowId workflowId1=WorkflowId.of(workflowId);
+    Workflow workflow = workflowRepository.findByWorkflowId(workflowId1)
         .orElseThrow(() -> new NotFoundException("No such workflow exists"));
 
     if (request.getWorkflow_name() != null &&
@@ -144,11 +146,12 @@ public class WorkflowServiceImpl implements WorkflowService {
     return response;
   }
   @Override
-  public void deleteWorkflow(String id) {
-    Workflow workflow = workflowRepository.findById(id)
+  public void deleteWorkflow(String workflowId) {
+    WorkflowId workflowId1=WorkflowId.of(workflowId);
+    Workflow workflow = workflowRepository.findByWorkflowId(workflowId1)
         .orElseThrow(() -> new NotFoundException("No workflow exists with this ID"));
 
-    String boardId = workflow.getBoard().getBoardId();
+    BoardId boardId = workflow.getBoard().getBoardId();
 
     long totalWorkflows = workflowRepository.countByBoard_BoardId(boardId);
 
@@ -159,12 +162,13 @@ public class WorkflowServiceImpl implements WorkflowService {
     workflowRepository.delete(workflow);
   }
   @Override
-  public StatusResponse addStatus(String id, AddStatusDTO request)
+  public StatusResponse addStatus(String workflowId, AddStatusDTO request)
   {
-    Workflow workflow=workflowRepository.findById(id)
+      WorkflowId workflowId1=WorkflowId.of(workflowId);
+    Workflow workflow=workflowRepository.findByWorkflowId(workflowId1)
         .orElseThrow(()->new NotFoundException("Workflow does not exist with this id"));
     if (workflowStatusRepository.existsByWorkflow_WorkflowIdAndStatusName(
-        id, request.getStatus_name())) {
+        workflowId1, request.getStatus_name())) {
       throw new BadRequestException("Status name already exists in this workflow");
     }
     boolean started = request.getStarted() != null ? request.getStarted() : false;
@@ -174,35 +178,42 @@ public class WorkflowServiceImpl implements WorkflowService {
         .statusName(request.getStatus_name())
         .workflow(workflow)
         .started(started)
+        .statusId(WorkflowStatusId.generate())
         .ended(ended)
         .isInitial(isInitial)
         .build();
     workflowStatusRepository.save(workflowStatus);
     StatusResponse statusResponse=StatusResponse.builder()
         .status_name(workflowStatus.getStatusName())
-        .id(workflowStatus.getStatusId())
+        .id(workflowStatus.getStatusId().getValue())
         .build();
     return statusResponse;
 
   }
   @Override
-  public void deleteStatus(String workflow_id,String status_id)
+  public void deleteStatus(String workflowId,String statusId)
   {
-    Workflow workflow=workflowRepository.findById(workflow_id)
+    WorkflowId workflowId1=WorkflowId.of(workflowId);
+    WorkflowStatusId workflowStatusId=WorkflowStatusId.of(statusId);
+    Workflow workflow=workflowRepository.findByWorkflowId(workflowId1)
         .orElseThrow(()->new NotFoundException("Workflow does not exists"));
-    WorkflowStatus workflowStatus=workflowStatusRepository.findById(status_id)
-        .orElseThrow(()->new NotFoundException("No status with id "+status_id));
-    if(!workflowStatusRepository.existsByWorkflow_WorkflowIdAndStatusId(workflow_id,status_id))
+    WorkflowStatus workflowStatus=workflowStatusRepository.findByStatusId(workflowStatusId)
+        .orElseThrow(()->new NotFoundException("No status with id "+statusId));
+    if(!workflowStatusRepository.existsByWorkflow_WorkflowIdAndStatusId(workflowId1,workflowStatusId))
     {
       throw new BadRequestException("No status id with this particular workflow id");
     }
     workflowStatusRepository.delete(workflowStatus);
   }
   @Override
-  public TransitionResponse addTransition(String id, TransitionRequest request)
+  public TransitionResponse addTransition(String workflowId, TransitionRequest request)
   {
-    Workflow workflow = workflowRepository.findById(id)
-        .orElseThrow(() -> new NotFoundException("Workflow with id " + id + " does not exist"));
+    WorkflowId workflowId1=WorkflowId.of(workflowId);
+    WorkflowStatusId workflowStatusId1=WorkflowStatusId.of(request.getFrom_status_id());
+    WorkflowStatusId workflowStatusId2 = WorkflowStatusId.of(request.getTo_status_id());
+
+    Workflow workflow = workflowRepository.findByWorkflowId(workflowId1)
+        .orElseThrow(() -> new NotFoundException("Workflow with id " + workflowId + " does not exist"));
 
     WorkflowStatus fromStatus = workflowStatusRepository.findById(request.getFrom_status_id())
         .orElseThrow(() -> new NotFoundException("From status with id " + request.getFrom_status_id() + " does not exist"));
@@ -210,16 +221,16 @@ public class WorkflowServiceImpl implements WorkflowService {
     WorkflowStatus toStatus = workflowStatusRepository.findById(request.getTo_status_id())
         .orElseThrow(() -> new NotFoundException("To status with id " + request.getTo_status_id() + " does not exist"));
 
-    if (!fromStatus.getWorkflow().getWorkflowId().equals(id)) {
+    if (!fromStatus.getWorkflow().getWorkflowId().getValue().equals(workflowId)) {
       throw new BadRequestException("From status does not belong to this workflow");
     }
 
-    if (!toStatus.getWorkflow().getWorkflowId().equals(id)) {
+    if (!toStatus.getWorkflow().getWorkflowId().getValue().equals(workflowId)) {
       throw new BadRequestException("To status does not belong to this workflow");
     }
 
     if (workflowTransitionRepository.existsByWorkflow_WorkflowIdAndFromStatus_StatusIdAndToStatus_StatusId(
-        id, request.getFrom_status_id(), request.getTo_status_id())) {
+        workflowId1, workflowStatusId1, workflowStatusId2)) {
       throw new BadRequestException("Transition already exists between these statuses");
     }
 
@@ -235,21 +246,24 @@ public class WorkflowServiceImpl implements WorkflowService {
     TransitionResponse response = TransitionResponse.builder()
         .from_status(fromStatus.getStatusName())
         .to_status(toStatus.getStatusName())
-        .workflow_id(workflow.getWorkflowId())
+        .workflow_id(workflow.getWorkflowId().getValue())
         .build();
 
     return response;
   }
   @Override
-  public void deleteTransition(String workflow_id , String transition_id)
+  public void deleteTransition(String workflowId , String transitionId)
   {
-    Workflow workflow = workflowRepository.findById(workflow_id)
+    WorkflowId workflowId1=WorkflowId.of(workflowId);
+    WorkflowTransitionId workflowTransitionId=WorkflowTransitionId.of(transitionId);
+
+    Workflow workflow = workflowRepository.findByWorkflowId(workflowId1)
         .orElseThrow(()->new BadRequestException("No such workflow id exists"));
-    WorkflowTransition workflowTransition = workflowTransitionRepository.findById(transition_id)
-        .orElseThrow(()->new BadRequestException("No transition exists with transition id "+transition_id));
+    WorkflowTransition workflowTransition = workflowTransitionRepository.findByWorkflowTransitionId(workflowTransitionId)
+        .orElseThrow(()->new BadRequestException("No transition exists with transition id "+transitionId));
     if(!workflowTransition.getWorkflow().getWorkflowId().equals(workflow.getWorkflowId()))
     {
-      throw new BadRequestException("No transition with id "+transition_id+" exists in the workflow with id "+workflow_id);
+      throw new BadRequestException("No transition with id "+transitionId+" exists in the workflow with id "+workflowId);
 
     }
     workflowTransitionRepository.delete(workflowTransition);

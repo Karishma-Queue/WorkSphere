@@ -6,6 +6,8 @@ import com.workify.worksphere.model.entity.Auth;
 import com.workify.worksphere.model.entity.Board;
 import com.workify.worksphere.model.entity.BoardMember;
 import com.workify.worksphere.model.entity.User;
+import com.workify.worksphere.model.value.BoardId;
+import com.workify.worksphere.model.value.Email;
 import com.workify.worksphere.repository.AuthRepository;
 import com.workify.worksphere.repository.BoardMemberRepository;
 import com.workify.worksphere.repository.BoardRepository;
@@ -37,7 +39,7 @@ public class AllowProjAdminOrProjMemberAspect {
   public void checkMemberOrAdminAccess(JoinPoint joinPoint) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     Auth auth = authRepository
-        .findByEmail(authentication.getName())
+        .findByEmail(Email.of(authentication.getName()))
         .orElseThrow(() -> new AuthenticationException("User not authenticated"));
     User user = auth.getUser();
 
@@ -49,7 +51,7 @@ public class AllowProjAdminOrProjMemberAspect {
 
     BoardMember boardMember =
         boardMemberRepository
-            .findByBoard_BoardIdAndUser_UserId(boardId, user.getUserId().toString())
+            .findByBoard_BoardIdAndUser_UserId(BoardId.of(boardId), user.getUserId())
             .orElseThrow(
                 () ->
                     new AccessDeniedException("Access denied: You are not a member of this board"));

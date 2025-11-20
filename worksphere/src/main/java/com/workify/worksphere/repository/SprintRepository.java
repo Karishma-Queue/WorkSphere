@@ -1,16 +1,16 @@
 package com.workify.worksphere.repository;
 
-import com.workify.worksphere.model.entity.Board;
 import com.workify.worksphere.model.entity.Sprint;
 import com.workify.worksphere.model.enums.SprintStatus;
+import com.workify.worksphere.model.value.BoardId;
+import com.workify.worksphere.model.value.SprintId;
+import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface SprintRepository extends JpaRepository<Sprint,String> {
-  Optional<Sprint> findBySprintId(String sprintId);
-  Optional<Sprint> findBySprintName(String name);
-  List<Sprint> findByBoard_BoardId(String boardId);
-  boolean existsByBoardAndSprintStatus(Board board, SprintStatus status);
-  boolean existsByBoardAndSprintName(Board board,String sprintName);
+public interface SprintRepository extends JpaRepository<Sprint, SprintId> {
+  Optional<Sprint> findBySprintId(SprintId sprintId);
+  List<Sprint> findByBoard_BoardId(BoardId boardId);
+  boolean existsByBoard_BoardIdAndSprintName(BoardId boardId, String sprintName);
+  boolean existsByBoard_BoardIdAndStatus(BoardId boardId, SprintStatus status);
 }

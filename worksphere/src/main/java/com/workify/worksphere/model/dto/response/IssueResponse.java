@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @Builder
 public class IssueResponse {
 
-    private IssueId issueId;
+    private String issueId;
     private String summary;
     private String description;
 
@@ -29,12 +29,12 @@ public class IssueResponse {
     private LocalDateTime updatedAt;
     private LocalDateTime resolvedAt;
 
-    private UserId reporterId;
+    private String reporterId;
     private String reporterName;
 
-    private UserId assigneeId;
+    private String assigneeId;
     private String assigneeName;
 
-    private IssueId parentId;     // If this is subtask
-    private IssueId epicId;       // If linked to epic
+    private String parentId;     // If this is subtask
+    private String epicId;       // If linked to epic
 }

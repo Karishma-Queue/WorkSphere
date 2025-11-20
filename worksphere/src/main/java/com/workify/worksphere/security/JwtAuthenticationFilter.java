@@ -1,5 +1,6 @@
 package com.workify.worksphere.security;
 
+import com.workify.worksphere.model.value.Email;
 import com.workify.worksphere.repository.AuthRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -37,9 +38,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             final String jwt = authHeader.substring(7);
             final String email = jwtUtil.extractEmail(jwt);
-
+             Email newEmail=Email.of(email);
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                var authOptional = authRepository.findByEmail(email);
+                var authOptional = authRepository.findByEmail(newEmail);
 
                 if (authOptional.isPresent() && jwtUtil.validateToken(jwt, email)) {
                     String role = jwtUtil.extractRole(jwt).toUpperCase();
