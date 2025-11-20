@@ -6,6 +6,7 @@ import com.workify.worksphere.model.entity.User;
 import com.workify.worksphere.model.enums.BoardRole;
 import com.workify.worksphere.model.value.BoardId;
 import com.workify.worksphere.model.value.BoardMemberId;
+import com.workify.worksphere.model.value.UserId;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -20,7 +21,7 @@ public interface BoardMemberRepository extends JpaRepository<BoardMember, String
     List<BoardMember> findByBoard_BoardId(BoardId boardId);
   Optional<BoardMember>findById(BoardMemberId boardMemberId);
     Optional<BoardMember> findByBoard_BoardIdAndBoardMemberId(  String boardId, String memberId);
-    List<BoardMember> findByUser_UserIdAndBoardRole(String userId,BoardRole role);
+    List<BoardMember> findByUser_UserIdAndBoardRole(UserId userId,BoardRole role);
     Optional<BoardMember> findByBoard_BoardIdAndBoardRole(String boardId, BoardRole boardRole);
   Optional<BoardMember>  findByBoard_BoardIdAndUser_UserId( String boardId,String userId);
 

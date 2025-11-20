@@ -18,6 +18,9 @@ import com.workify.worksphere.model.entity.User;
 import com.workify.worksphere.model.entity.Workflow;
 import com.workify.worksphere.model.entity.WorkflowStatus;
 import com.workify.worksphere.model.entity.WorkflowTransition;
+import com.workify.worksphere.model.value.BoardId;
+import com.workify.worksphere.model.value.Email;
+import com.workify.worksphere.model.value.WorkflowId;
 import com.workify.worksphere.repository.AuthRepository;
 import com.workify.worksphere.repository.BoardRepository;
 import com.workify.worksphere.repository.WorkflowRepository;
@@ -39,16 +42,19 @@ public class WorkflowServiceImpl implements WorkflowService {
   private final WorkflowStatusRepository workflowStatusRepository;
   private final BoardRepository boardRepository;
   @Override
-  public WorkflowResponse createWorkflow( String id, WorkflowRequestDTO request)
+  public WorkflowResponse createWorkflow( String boardId, WorkflowRequestDTO request)
   {
-    Board board=boardRepository.findById(id)
+    BoardId boardId1=BoardId.of(boardId);
+    Board board=boardRepository.findByBoardId(boardId1)
         .orElseThrow(()->new NotFoundException("Board not found"));
     Authentication auth= SecurityContextHolder.getContext().getAuthentication();
-    Auth optionalAuth=  authRepository.findByEmail(auth.getName())
+    Email email=Email.of(auth.getName());
+    Auth optionalAuth=  authRepository.findByEmail(email)
         .orElseThrow(()->new AuthenticationException("user not authenticated"));
     User user=optionalAuth.getUser();
     Workflow workFlow=Workflow.builder()
         .createdBy(user)
+        .workflowId(WorkflowId.generate())
         .workflowName(request.getWorkflow_name())
         .issueType(request.getIssue())
         .board(board)
@@ -59,16 +65,18 @@ public class WorkflowServiceImpl implements WorkflowService {
         .createdAt(workFlow.getCreatedAt())
         .issue(workFlow.getIssueType())
         .workflow_name(workFlow.getWorkflowName())
-        .id(workFlow.getWorkflowId())
+        .id(workFlow.getWorkflowId().getValue())
         .build();
     return response;
   }
   @Override
-  public List<BoardWorkflowDTO> getBoardWorkflows(String id)
+  public List<BoardWorkflowDTO> getBoardWorkflows(String boardId)
   {
-    Board board=boardRepository.findById(id)
+    BoardId boardId1=BoardId.of(boardId);
+
+    Board board=boardRepository.findByBoardId(boardId1)
         .orElseThrow(()->new NotFoundException("Board not found"));
-    List<Workflow>workflows=workflowRepository.findByBoard_BoardId(id);
+    List<Workflow>workflows=workflowRepository.findByBoard_BoardId(boardId1);
     return workflows.stream()
         .map(w -> BoardWorkflowDTO.builder()
             .workflow_name(w.getWorkflowName())

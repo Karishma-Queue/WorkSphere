@@ -4,6 +4,7 @@ import com.workify.worksphere.exception.NotFoundException;
 import com.workify.worksphere.model.dto.request.UpdateUserDTO;
 import com.workify.worksphere.model.dto.response.UserResponse;
 import com.workify.worksphere.model.entity.User;
+import com.workify.worksphere.model.value.UserId;
 import com.workify.worksphere.repository.UserRepository;
 import com.workify.worksphere.service.CloudinaryService;
 import com.workify.worksphere.service.UserService;
@@ -16,12 +17,13 @@ public class UserServiceImpl implements UserService {
   private final UserRepository userRepository;
   private final CloudinaryService cloudinaryService;
   @Override
-  public UserResponse getUser(String user_id)
+  public UserResponse getUser(String userId)
   {
-    User user= userRepository.findByUserId(user_id)
-        .orElseThrow(()->new NotFoundException("No user exist with id "+user_id));
+    UserId userId1=UserId.of(userId);
+    User user= userRepository.findByUserId(userId1)
+        .orElseThrow(()->new NotFoundException("No user exist with id "+userId));
     return UserResponse.builder()
-        .userId(user.getUserId())
+        .userId(user.getUserId().getValue())
         .userName(user.getUserName())
         .role(user.getRole().name())
         .jobTitle(user.getJobTitle())
@@ -32,9 +34,10 @@ public class UserServiceImpl implements UserService {
 
   }
   @Override
-  public UserResponse updateUser(String id, UpdateUserDTO dto, MultipartFile image) {
+  public UserResponse updateUser(String userId, UpdateUserDTO dto, MultipartFile image) {
+    UserId userId1=UserId.of(userId);
 
-    User user = userRepository.findByUserId(id)
+    User user = userRepository.findByUserId(userId1)
         .orElseThrow(() -> new NotFoundException("User not found"));
 
     if (dto.getUserName() != null && !dto.getUserName().isBlank()) {
@@ -56,7 +59,7 @@ public class UserServiceImpl implements UserService {
 
     userRepository.save(user);
     return UserResponse.builder()
-        .userId(user.getUserId())
+        .userId(user.getUserId().getValue())
         .userName(user.getUserName())
         .role(user.getRole().name())
         .jobTitle(user.getJobTitle())

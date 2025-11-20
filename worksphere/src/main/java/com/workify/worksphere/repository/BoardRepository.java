@@ -2,6 +2,7 @@ package com.workify.worksphere.repository;
 
 import com.workify.worksphere.model.entity.Board;
 import com.workify.worksphere.model.value.BoardId;
+import com.workify.worksphere.model.value.UserId;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface BoardRepository extends JpaRepository<Board, String> {
-    List<Board> findByCreatedBy_UserId(String userId);
+    List<Board> findByCreatedBy_UserId(UserId userId);
     @Query("""
            SELECT b FROM Board b 
            WHERE LOWER(b.boardName) LIKE LOWER(CONCAT('%', :query, '%'))
@@ -19,5 +20,5 @@ public interface BoardRepository extends JpaRepository<Board, String> {
            """)
     List<Board> searchBoards(@Param("query") String query);
        Optional<Board> findById(BoardId boardId);
-    Optional<Board> findByBoardId(String BoardId);
+    Optional<Board> findByBoardId(BoardId boardId);
 }
