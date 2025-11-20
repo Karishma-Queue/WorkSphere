@@ -35,22 +35,18 @@ public class AllowProjAdminOrProjMemberAspect {
 
   @Before("@annotation(com.workify.worksphere.security.annotation.AllowProjAdminOrProjMember)")
   public void checkMemberOrAdminAccess(JoinPoint joinPoint) {
-    // Get authenticated user
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     Auth auth = authRepository
         .findByEmail(authentication.getName())
         .orElseThrow(() -> new AuthenticationException("User not authenticated"));
     User user = auth.getUser();
 
-    // Extract boardId from method parameters
     String boardId = extractBoardId(joinPoint);
 
-    // Verify board exists
     Board board = boardRepository
         .findById(boardId)
         .orElseThrow(() -> new BadRequestException("Board not found"));
 
-    // Check if user is a member or admin of the board
     BoardMember boardMember =
         boardMemberRepository
             .findByBoard_BoardIdAndUser_UserId(boardId, user.getUserId().toString())
@@ -58,7 +54,6 @@ public class AllowProjAdminOrProjMemberAspect {
                 () ->
                     new AccessDeniedException("Access denied: You are not a member of this board"));
 
-    // If we reach here, user is either a member or admin (both are allowed)
   }
 
   private String extractBoardId(JoinPoint joinPoint) {

@@ -7,19 +7,23 @@ public class SignupResponse {
     private String department;
     private String profilePictureUrl;
     private String email;
+    private String userId;
     private String password;
 
-    public SignupResponse(String userName, String jobTitle, String role, String department,
+    public SignupResponse(String userId,String userName, String jobTitle, String role, String department,
                           String profilePictureUrl, String email) {
         this.userName = userName;
         this.jobTitle = jobTitle;
         this.role = role;
+        this.userId=userId;
         this.department = department;
         this.profilePictureUrl = profilePictureUrl;
         this.email = email;
     }
 
     // Getters and Setters
+    public String getUserId(){return userId;}
+  public void setUserId(String userId){this.userId=userId;}
     public String getUserName() { return userName; }
     public void setUserName(String userName) { this.userName = userName; }
 

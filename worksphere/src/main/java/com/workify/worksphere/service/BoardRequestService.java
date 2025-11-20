@@ -33,6 +33,7 @@ public interface BoardRequestService {
   List<BoardRequestResponse> myRequestsByStatus(Status status);
   void updateMyRequest(String id, BoardRequestUpdateDTO request);
   void deleteMyRequest(@PathVariable String id);
+  void approveRequest( String id);
   BoardDetailsDTO getMyRequest(@PathVariable String id);
   List<BoardDetailsDTO> getAllRequestsByStatus(Status status);
   BoardDetailsDTO getRequestById(String id);

@@ -19,6 +19,10 @@ import com.workify.worksphere.model.entity.User;
 import com.workify.worksphere.model.enums.BoardRole;
 import com.workify.worksphere.model.enums.Role;
 import com.workify.worksphere.model.enums.Status;
+import com.workify.worksphere.model.value.BoardId;
+import com.workify.worksphere.model.value.BoardMemberId;
+import com.workify.worksphere.model.value.BoardRequestId;
+import com.workify.worksphere.model.value.Email;
 import com.workify.worksphere.repository.AuthRepository;
 import com.workify.worksphere.repository.BoardMemberRepository;
 import com.workify.worksphere.repository.BoardRepository;
@@ -44,14 +48,15 @@ public class BoardRequestServiceImpl implements BoardRequestService {
   private final BoardRepository boardRepository;
 @Override
   public ResponseEntity<?> createRequest(BoardRequestDTO request, String email) {
-
-    Auth auth = authRepository.findByEmail(email)
+   Email newEmail= Email.of(email);
+    Auth auth = authRepository.findByEmail(newEmail)
         .orElseThrow(() -> new AuthenticationException("Authentication not found"));
 
     BoardRequest boardRequest = BoardRequest.builder()
         .boardRequestName(request.getBoard_request_name())
         .boardRequestKey(request.getBoard_request_key())
         .requester(auth.getUser())
+        .boardRequestId(BoardRequestId.generate())
         .description(request.getDescription())
         .justification(request.getJustification())
         .build();
@@ -63,7 +68,7 @@ public class BoardRequestServiceImpl implements BoardRequestService {
         .body(Map.of(
             "message", "Board created successfully",
             "boardName", boardRequest.getBoardRequestName(),
-            "boardId", boardRequest.getBoardRequestId(),
+            "boardId", boardRequest.getBoardRequestId().getValue(),
             "requestedBy", auth.getEmail()
         ));
   }
@@ -72,9 +77,10 @@ public class BoardRequestServiceImpl implements BoardRequestService {
     return boardRequestRepository.findAll();
   }
 
-
+@Override
   public void approveRequest( String id) {
-    BoardRequest boardRequest = boardRequestRepository.findById(id)
+    BoardRequestId boardRequestId=BoardRequestId.of(id);
+    BoardRequest boardRequest = boardRequestRepository.findById(boardRequestId)
         .orElseThrow(() -> new BoardRequestException("Board request not found with id: " + id));
 
     if (!Status.PENDING.equals(boardRequest.getStatus())) {
@@ -89,6 +95,7 @@ public class BoardRequestServiceImpl implements BoardRequestService {
     System.out.println("Requester userName: " + boardRequest.getRequester().getUserName());
 
     Board board = Board.builder()
+        .boardId(BoardId.generate())
         .boardName(boardRequest.getBoardRequestName())
         .boardKey(boardRequest.getBoardRequestKey())
         .description(boardRequest.getDescription())
@@ -99,6 +106,7 @@ public class BoardRequestServiceImpl implements BoardRequestService {
 
     BoardMember boardMember = BoardMember.builder()
         .board(board)
+        .boardMemberId(BoardMemberId.generate())
         .user(board.getCreatedBy())
         .boardRole(BoardRole.PROJECT_ADMIN)
         .build();
@@ -121,7 +129,8 @@ public class BoardRequestServiceImpl implements BoardRequestService {
   }
 @Override
   public void rejectRequest(String id, RejectRequestDTO request) {
-    BoardRequest boardRequest = boardRequestRepository.findById(id)
+  BoardRequestId boardRequestId=BoardRequestId.of(id);
+    BoardRequest boardRequest = boardRequestRepository.findById(boardRequestId)
         .orElseThrow(() -> new BoardRequestException("Board request not found with id: " + id));
 
     if (!Status.PENDING.equals(boardRequest.getStatus())) {
@@ -158,7 +167,8 @@ public class BoardRequestServiceImpl implements BoardRequestService {
     if (auth == null || !auth.isAuthenticated()) {
       throw User_not_authenticated;
     }
-    Auth authMember = authRepository.findByEmail(auth.getName())
+    Email email=Email.of(auth.getName());
+    Auth authMember = authRepository.findByEmail(email)
         .orElseThrow(() -> new UserNotFoundException("User not found with email: " + auth.getName()));
     User member = authMember.getUser();
     return member;
@@ -166,7 +176,7 @@ public class BoardRequestServiceImpl implements BoardRequestService {
 
   private BoardRequestResponse mapToDTO(BoardRequest entity) {
     BoardRequestResponse dto = new BoardRequestResponse();
-    dto.setId(entity.getBoardRequestId());
+    dto.setId(entity.getBoardRequestId().getValue());
     dto.setName(entity.getBoardRequestName());
     dto.setRequesterName(entity.getRequester());
     return dto;
@@ -184,8 +194,8 @@ public class BoardRequestServiceImpl implements BoardRequestService {
   @Override
   public void updateMyRequest(String id, BoardRequestUpdateDTO request) {
     User proj_admin = authUser(new AuthenticationException("User not authenticated"));
-
-    BoardRequest boardRequest = boardRequestRepository.findById(id)
+    BoardRequestId boardRequestId=BoardRequestId.of(id);
+    BoardRequest boardRequest = boardRequestRepository.findById(boardRequestId)
 
         .orElseThrow(() -> new NotFoundException("No such board-request id exists"));
     if (!boardRequest.getRequester().equals(proj_admin)) {
@@ -214,8 +224,9 @@ public class BoardRequestServiceImpl implements BoardRequestService {
   @Override
   public void deleteMyRequest(@PathVariable String id)
   {
+    BoardRequestId boardRequestId=BoardRequestId.of(id);
     User proj_admin = authUser(new AuthenticationException("User not authenticated"));
-    BoardRequest boardRequest = boardRequestRepository.findById(id)
+    BoardRequest boardRequest = boardRequestRepository.findById(boardRequestId)
 
         .orElseThrow(() -> new NotFoundException("No such board-request id exists"));
     if (!boardRequest.getRequester().equals(proj_admin)) {
@@ -230,15 +241,16 @@ public class BoardRequestServiceImpl implements BoardRequestService {
   @Override
   public BoardDetailsDTO getMyRequest(@PathVariable String id)
   {
+    BoardRequestId boardRequestId=BoardRequestId.of(id);
     User current_user = authUser(new AuthenticationException("User not authenticated"));
-    BoardRequest boardRequest = boardRequestRepository.findById(id)
+    BoardRequest boardRequest = boardRequestRepository.findById(boardRequestId)
 
         .orElseThrow(() -> new NotFoundException("No such board-request id exists"));
     if (!boardRequest.getRequester().equals(current_user)) {
       throw new AccessNotGivenException("You can only view your own requests");
     }
     BoardDetailsDTO boardDetailsDTO =BoardDetailsDTO.builder()
-        .board_request_id(boardRequest.getBoardRequestId())
+        .board_request_id(boardRequest.getBoardRequestId().getValue())
         .board_request_key(boardRequest.getBoardRequestKey())
         .justification(boardRequest.getJustification())
         .requestedAt(boardRequest.getRequestedAt())
@@ -262,7 +274,7 @@ public class BoardRequestServiceImpl implements BoardRequestService {
   }
   private BoardDetailsDTO mapTodetailsDTO(BoardRequest entity) {
     BoardDetailsDTO dto = new BoardDetailsDTO();
-    dto.setBoard_request_id(entity.getBoardRequestId());
+    dto.setBoard_request_id(entity.getBoardRequestId().getValue());
     dto.setBoard_request_name(entity.getBoardRequestName());
     dto.setBoard_request_key(entity.getBoardRequestKey());
     dto.setJustification(entity.getJustification());
@@ -280,14 +292,16 @@ public class BoardRequestServiceImpl implements BoardRequestService {
   public BoardDetailsDTO getRequestById(String id)
   {
     Authentication auth=SecurityContextHolder.getContext().getAuthentication();
-    Auth optionalAuth=authRepository.findByEmail(auth.getName())
+    Email email=Email.of(auth.getName());
+    Auth optionalAuth=authRepository.findByEmail(email)
         .orElseThrow(()->new AuthenticationException("Authentication issue"));
     User current_user=optionalAuth.getUser();
     if(current_user.getRole()!= Role.ADMIN)
     {
       throw new AccessNotGivenException("Only admin can view this");
     }
-    BoardRequest boardRequest=boardRequestRepository.findById(id)
+    BoardRequestId boardRequestId=BoardRequestId.of(id);
+    BoardRequest boardRequest=boardRequestRepository.findById(boardRequestId)
         .orElseThrow(()->new NotFoundException("No such board-request id exists"));
 
     return mapTodetailsDTO(boardRequest);

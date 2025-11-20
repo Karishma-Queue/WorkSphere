@@ -11,6 +11,9 @@ import com.workify.worksphere.model.entity.Auth;
 import com.workify.worksphere.model.entity.Board;
 import com.workify.worksphere.model.entity.BoardMember;
 import com.workify.worksphere.model.entity.User;
+import com.workify.worksphere.model.value.BoardId;
+import com.workify.worksphere.model.value.BoardMemberId;
+import com.workify.worksphere.model.value.Email;
 import com.workify.worksphere.repository.AuthRepository;
 import com.workify.worksphere.repository.BoardMemberRepository;
 import com.workify.worksphere.repository.BoardRepository;
@@ -28,12 +31,12 @@ public class BoardMemberServiceImpl implements BoardMemberService {
   private final BoardMemberRepository boardMemberRepository;
   @Override
   public AddBoardMemberResponseDTO addBoardMember(String boardId, AddBoardMemberDTO request) {
-
-    Board board = boardRepository.findById(boardId)
+   BoardId boardId1=BoardId.of(boardId);
+    Board board = boardRepository.findById(boardId1)
         .orElseThrow(() ->
             new NotFoundException("No board exists with ID " + boardId));
-
-    Auth auth = authRepository.findByEmail(request.getEmail())
+    Email newEmail= Email.of(request.getEmail());
+    Auth auth = authRepository.findByEmail(newEmail)
         .orElseThrow(() ->
             new AuthenticationException("User not authenticated"));
 
@@ -45,13 +48,14 @@ public class BoardMemberServiceImpl implements BoardMemberService {
 
     BoardMember boardMember = BoardMember.builder()
         .board(board)
+        .boardMemberId(BoardMemberId.generate())
         .user(member)
         .build();
 
     boardMemberRepository.save(boardMember);
 
     return AddBoardMemberResponseDTO.builder()
-        .board_member_id(boardMember.getBoardMemberId())
+        .board_member_id(boardMember.getBoardMemberId().getValue())
         .user(boardMember.getUser())
         .board(boardMember.getBoard())
         .boardRole(boardMember.getBoardRole())
@@ -61,27 +65,29 @@ public class BoardMemberServiceImpl implements BoardMemberService {
 
  @Override
   public ResponseEntity<String> removeBoardMember(String boardId, String memberId) {
-
-    BoardMember boardMember = boardMemberRepository.findById(memberId)
+  BoardMemberId boardMemberId=BoardMemberId.of(memberId);
+  BoardId boardId1=BoardId.of(boardId);
+    BoardMember boardMember = boardMemberRepository.findById(boardMemberId)
         .orElseThrow(() ->
             new NotFoundException("No member exists with ID " + memberId));
 
-    if (!boardMember.getBoard().getBoardId().equals(boardId)) {
-      throw new NotFoundException("This member does not belong to the specified board");
-    }
+   if (!boardMember.getBoard().getBoardId().getValue().equals(boardId)) {
+     throw new NotFoundException("This member does not belong to the specified board");
+   }
 
-    boardMemberRepository.delete(boardMember);
+   boardMemberRepository.delete(boardMember);
 
     return ResponseEntity.ok("Member deleted successfully");
   }
 
   public BoardMemberDetailsDTO getMemberDetails(String boardId, String memberId) {
-
-    BoardMember boardMember = boardMemberRepository.findById(memberId)
+  BoardMemberId boardMemberId=BoardMemberId.of(memberId);
+  BoardId boardId1=BoardId.of(boardId);
+    BoardMember boardMember = boardMemberRepository.findById(boardMemberId)
         .orElseThrow(() ->
             new NotFoundException("No such board member exists"));
 
-    if (!boardMember.getBoard().getBoardId().equals(boardId)) {
+    if (!boardMember.getBoard().getBoardId().getValue().equals(boardId)) {
       throw new NotFoundException("This member does not belong to the specified board");
     }
 
@@ -89,18 +95,18 @@ public class BoardMemberServiceImpl implements BoardMemberService {
         .orElseThrow(() -> new AuthenticationException("Member not authenticated"));
 
     return BoardMemberDetailsDTO.builder()
-        .board_id(boardMember.getBoard().getBoardId())
+        .board_id(boardMember.getBoard().getBoardId().getValue())
         .board_key(boardMember.getBoard().getBoardKey())
         .board_name(boardMember.getBoard().getBoardName())
 
-        .user_id(boardMember.getUser().getUserId())
+        .user_id(boardMember.getUser().getUserId().getValue())
         .user_name(boardMember.getUser().getUserName())
         .job_title(boardMember.getUser().getJobTitle())
         .department(boardMember.getUser().getDepartment())
         .profile_picture_url(boardMember.getUser().getProfilePictureUrl())
 
         .boardRole(boardMember.getBoardRole())
-        .email(auth.getEmail())
+        .email(auth.getEmail().getEmail())
         .joinedAt(boardMember.getJoinedAt())
         .build();
   }
@@ -108,9 +114,9 @@ public class BoardMemberServiceImpl implements BoardMemberService {
   @Override
 
   public List<AllBoardMemberDTO> getBoardMembers(String boardId) {
-
+    BoardId boardId1=BoardId.of(boardId);
     List<BoardMember> members =
-        boardMemberRepository.findByBoard_BoardId(boardId);
+        boardMemberRepository.findByBoard_BoardId(boardId1);
 
     return members.stream()
         .map(member -> AllBoardMemberDTO.builder()

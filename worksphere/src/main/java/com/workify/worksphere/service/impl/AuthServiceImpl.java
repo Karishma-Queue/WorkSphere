@@ -9,7 +9,9 @@ import com.workify.worksphere.model.dto.response.LoginResponse;
 import com.workify.worksphere.model.dto.response.SignupResponse;
 import com.workify.worksphere.model.entity.Auth;
 import com.workify.worksphere.model.entity.User;
+import com.workify.worksphere.model.value.AuthId;
 import com.workify.worksphere.model.value.Email;
+import com.workify.worksphere.model.value.UserId;
 import com.workify.worksphere.repository.AuthRepository;
 import com.workify.worksphere.repository.UserRepository;
 import com.workify.worksphere.security.JwtUtil;
@@ -34,8 +36,8 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   public SignupResponse registerUser(SignupRequest request) {
-
-    if (authRepository.findByEmail(request.getEmail()).isPresent()) {
+    Email newEmail=Email.of(request.getEmail());
+    if (authRepository.findByEmail(newEmail).isPresent()) {
       throw new EmailAlreadyExists("Email already registered");
     }
 
@@ -43,6 +45,7 @@ public class AuthServiceImpl implements AuthService {
     String url = cloudinaryService.uploadProfilePicture(request.getProfile_picture());
 
     User user = User.builder()
+        .userId(UserId.generate())
         .userName(request.getUser_name())
         .department(request.getDepartment())
         .jobTitle(request.getJob_title())
@@ -54,7 +57,8 @@ public class AuthServiceImpl implements AuthService {
     Email email = Email.of(request.getEmail());
 
     Auth auth = Auth.builder()
-        .email(email.getValue())
+        .email(email)
+        .authId(AuthId.generate())
         .user(user)
         .hashedPass(hashedPassword)
         .build();
@@ -62,19 +66,20 @@ public class AuthServiceImpl implements AuthService {
     authRepository.save(auth);
 
     return new SignupResponse(
+        user.getUserId().getValue(),
         user.getUserName(),
         user.getJobTitle(),
         user.getRole().toString(),
         user.getDepartment(),
         user.getProfilePictureUrl(),
-        auth.getEmail()
+        auth.getEmail().getEmail()
     );
   }
 
   @Override
   public LoginResponse loginUser(LoginRequest request) {
-
-    Optional<Auth> optionalAuth = authRepository.findByEmail(request.getEmail());
+    Email newEmail=Email.of(request.getEmail());
+    Optional<Auth> optionalAuth = authRepository.findByEmail(newEmail);
 
     if (optionalAuth.isEmpty()) {
       throw new UserNotFoundException("Account not created");
@@ -89,13 +94,14 @@ public class AuthServiceImpl implements AuthService {
       throw new InvalidCredentialsException("Incorrect password");
     }
 
-    String token = jwtUtil.generateToken(auth.getEmail(), user.getRole().toString());
+    String token = jwtUtil.generateToken(auth.getEmail().getEmail(), user.getRole().toString());
 
     return LoginResponse.builder()
-        .user_name(user.getUserName())
+        .userId(user.getUserId().getValue())
+        .userName(user.getUserName())
         .role(user.getRole())
-        .profile_picture_url(user.getProfilePictureUrl())
-        .email(auth.getEmail())
+        .profilePictureUrl(user.getProfilePictureUrl())
+        .email(auth.getEmail().getEmail())
         .token(token)
         .build();
   }

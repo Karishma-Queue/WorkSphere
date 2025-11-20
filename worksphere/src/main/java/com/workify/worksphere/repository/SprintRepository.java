@@ -12,4 +12,5 @@ public interface SprintRepository extends JpaRepository<Sprint,String> {
   Optional<Sprint> findBySprintName(String name);
   List<Sprint> findByBoard_BoardId(String boardId);
   boolean existsByBoardAndSprintStatus(Board board, SprintStatus status);
+  boolean existsByBoardAndSprintName(Board board,String sprintName);
 }
