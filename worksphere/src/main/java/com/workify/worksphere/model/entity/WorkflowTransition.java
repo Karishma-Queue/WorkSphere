@@ -16,13 +16,12 @@ import java.util.Set;
 @Builder
 public class WorkflowTransition {
 
-  @EmbeddedId
-  private WorkflowTransitionId workTransitionId;
+  @EmbeddedId private WorkflowTransitionId workflowTransitionId;
 
   @PrePersist
   private void prePersist() {
-    if (this.workTransitionId == null) {
-      this.workTransitionId = WorkflowTransitionId.generate();
+    if (this.workflowTransitionId == null) {
+      this.workflowTransitionId = WorkflowTransitionId.generate();
     }
   }
 

@@ -14,6 +14,6 @@ public interface BoardRequestRepository extends JpaRepository<BoardRequest, Stri
     List<BoardRequest> findByRequester(User user);
     List<BoardRequest> findByRequesterAndStatus(User user, Status status);
     List<BoardRequest> findByStatus(Status status);
-    Optional<BoardRequest> findById(BoardRequestId boardRequestId);
+    Optional<BoardRequest> findByBoardRequestId(BoardRequestId boardRequestId);
 
 }

@@ -19,6 +19,5 @@ public interface BoardRepository extends JpaRepository<Board, String> {
            OR LOWER(b.description) LIKE LOWER(CONCAT('%', :query, '%'))
            """)
     List<Board> searchBoards(@Param("query") String query);
-       Optional<Board> findById(BoardId boardId);
     Optional<Board> findByBoardId(BoardId boardId);
 }

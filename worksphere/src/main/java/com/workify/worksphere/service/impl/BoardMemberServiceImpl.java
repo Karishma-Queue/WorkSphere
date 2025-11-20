@@ -32,7 +32,7 @@ public class BoardMemberServiceImpl implements BoardMemberService {
   @Override
   public AddBoardMemberResponseDTO addBoardMember(String boardId, AddBoardMemberDTO request) {
    BoardId boardId1=BoardId.of(boardId);
-    Board board = boardRepository.findById(boardId1)
+    Board board = boardRepository.findByBoardId(boardId1)
         .orElseThrow(() ->
             new NotFoundException("No board exists with ID " + boardId));
     Email newEmail= Email.of(request.getEmail());
@@ -67,7 +67,7 @@ public class BoardMemberServiceImpl implements BoardMemberService {
   public ResponseEntity<String> removeBoardMember(String boardId, String memberId) {
   BoardMemberId boardMemberId=BoardMemberId.of(memberId);
   BoardId boardId1=BoardId.of(boardId);
-    BoardMember boardMember = boardMemberRepository.findById(boardMemberId)
+    BoardMember boardMember = boardMemberRepository.findByBoardMemberId(boardMemberId)
         .orElseThrow(() ->
             new NotFoundException("No member exists with ID " + memberId));
 
@@ -83,7 +83,7 @@ public class BoardMemberServiceImpl implements BoardMemberService {
   public BoardMemberDetailsDTO getMemberDetails(String boardId, String memberId) {
   BoardMemberId boardMemberId=BoardMemberId.of(memberId);
   BoardId boardId1=BoardId.of(boardId);
-    BoardMember boardMember = boardMemberRepository.findById(boardMemberId)
+    BoardMember boardMember = boardMemberRepository.findByBoardMemberId(boardMemberId)
         .orElseThrow(() ->
             new NotFoundException("No such board member exists"));
 
