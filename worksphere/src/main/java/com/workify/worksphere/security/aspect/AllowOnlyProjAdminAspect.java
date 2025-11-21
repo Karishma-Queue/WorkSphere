@@ -8,6 +8,7 @@ import com.workify.worksphere.model.entity.Workflow;
 import com.workify.worksphere.model.enums.BoardRole;
 import com.workify.worksphere.model.value.BoardId;
 import com.workify.worksphere.model.value.Email;
+import com.workify.worksphere.model.value.WorkflowId;
 import com.workify.worksphere.repository.AuthRepository;
 import com.workify.worksphere.repository.BoardMemberRepository;
 import com.workify.worksphere.repository.WorkflowRepository;
@@ -70,7 +71,7 @@ public class AllowOnlyProjAdminAspect {
             // If workflow_id found, fetch board_id from workflow
             if (workflowId != null) {
                 final String finalWorkflowId = workflowId;
-                Workflow workflow = workflowRepository.findById(finalWorkflowId)
+                Workflow workflow = workflowRepository.findByWorkflowId(WorkflowId.of(finalWorkflowId))
                         .orElseThrow(() -> new RuntimeException("Workflow not found with id: " + finalWorkflowId));
                 boardId = workflow.getBoard().getBoardId().getValue();
             }
@@ -116,7 +117,7 @@ public class AllowOnlyProjAdminAspect {
         }
 
             if (boardMember == null) {
-            return false;
+            return   false;
         }
 
         return user.getUserId().equals(boardMember.getUser().getUserId());

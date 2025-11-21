@@ -120,6 +120,7 @@ public class BoardMemberServiceImpl implements BoardMemberService {
 
     return members.stream()
         .map(member -> AllBoardMemberDTO.builder()
+            .board_member_id(member.getBoardMemberId().getValue())
             .user_id(member.getUser().getUserId().getValue())
             .user_name(member.getUser().getUserName())
             .boardRole(member.getBoardRole())

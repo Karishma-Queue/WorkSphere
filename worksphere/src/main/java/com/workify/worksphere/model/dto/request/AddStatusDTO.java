@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class AddStatusDTO {
     private Boolean started;
     private Boolean ended;
+    private Boolean is_final;
     private Boolean is_initial;
     private String status_name;
 }

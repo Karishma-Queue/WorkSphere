@@ -107,6 +107,7 @@ public class IssueServiceImpl implements IssueService {
     Issue issue = Issue.builder()
         .board(board)
         .reporter(reporter)
+        .issueId(IssueId.generate())
         .workflow(workflow)
         .status(initialStatus)
         .issue(request.getIssue_type())
@@ -340,6 +341,7 @@ public class IssueServiceImpl implements IssueService {
         .startDate(request.getStartDate())
         .endDate(request.getEndDate())
         .createdBy(user)
+        .sprintId(SprintId.generate())
         .board(board)
         .status(SprintStatus.PLANNED)
         .build();

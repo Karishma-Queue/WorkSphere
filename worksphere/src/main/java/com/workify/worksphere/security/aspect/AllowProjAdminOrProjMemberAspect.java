@@ -46,7 +46,7 @@ public class AllowProjAdminOrProjMemberAspect {
     String boardId = extractBoardId(joinPoint);
 
     Board board = boardRepository
-        .findById(boardId)
+        .findByBoardId(BoardId.of(boardId))
         .orElseThrow(() -> new BadRequestException("Board not found"));
 
     BoardMember boardMember =

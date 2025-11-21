@@ -174,10 +174,12 @@ public class WorkflowServiceImpl implements WorkflowService {
     boolean started = request.getStarted() != null ? request.getStarted() : false;
     boolean ended = request.getEnded() != null ? request.getEnded() : false;
     boolean isInitial= request.getIs_initial()!=null? request.getIs_initial() : false;
+    boolean isFinal=request.getIs_final()!=null?request.getIs_final() : false;
     WorkflowStatus workflowStatus=WorkflowStatus.builder()
         .statusName(request.getStatus_name())
         .workflow(workflow)
         .started(started)
+        .isFinal(isFinal)
         .statusId(WorkflowStatusId.generate())
         .ended(ended)
         .isInitial(isInitial)
